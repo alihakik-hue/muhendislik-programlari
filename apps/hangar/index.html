@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Çelik Hangar Yaklaşık Maliyet ve Teklif</title>
+<style>
+:root{--bg:#f3f5f7;--card:#fff;--ink:#17212b;--muted:#66727e;--line:#d9dee4;--accent:#1f4e78}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);font:14px Arial,sans-serif;color:var(--ink)}
+header{background:linear-gradient(135deg,#173b5b,#28658f);color:white;padding:20px 28px}
+header h1{margin:0 0 5px;font-size:24px} header p{margin:0;opacity:.85}
+main{max-width:1400px;margin:18px auto;padding:0 16px}.grid{display:grid;grid-template-columns:420px 1fr;gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;box-shadow:0 2px 8px #0000000a}
+h2{font-size:17px;margin:0 0 14px;color:var(--accent)} h3{font-size:15px;margin:18px 0 10px}
+.form{display:grid;grid-template-columns:1fr 150px;gap:8px 12px;align-items:center}
+label{color:#3f4b56}.input,select{width:100%;padding:8px;border:1px solid #cbd2d9;border-radius:6px;background:#fff}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.btn{border:0;border-radius:6px;padding:10px 13px;cursor:pointer;font-weight:700}.primary{background:var(--accent);color:#fff}.secondary{background:#e7edf2;color:#173b5b}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.kpi{border:1px solid var(--line);border-radius:8px;padding:12px;background:#fafbfc}.kpi small{display:block;color:var(--muted)}.kpi strong{font-size:20px}
+table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid var(--line);text-align:right}th:first-child,td:first-child{text-align:left}th{background:#eef3f7}
+.svgbox{background:#eef3f7;border:1px solid var(--line);border-radius:8px;padding:8px;margin-top:12px}svg{width:100%;height:430px;display:block}.perspective-wrap{background:linear-gradient(#dfeaf2,#f7fafc 58%,#d9d3c7 58%);border:1px solid var(--line);border-radius:10px;overflow:hidden}.perspective-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.badge{padding:5px 8px;border-radius:999px;background:#eef3f7;color:#3f4b56;font-size:12px}.offer-head{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}.offer-box{border:1px solid var(--line);border-radius:8px;padding:10px;background:#fafbfc}.offer-box strong{display:block;color:#173b5b;margin-bottom:4px}.print-only{display:none}@media print{.print-only{display:block}}
+.note{font-size:12px;color:var(--muted);line-height:1.5}.total{font-size:24px;font-weight:800;color:#173b5b}
+@media(max-width:1000px){.grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.offer-head{grid-template-columns:1fr}.form{grid-template-columns:1fr}.form label{margin-top:5px}}
+@media print{
+body{background:#fff} header{padding:12px 20px}.grid{display:block}.card{box-shadow:none;border:0;margin-bottom:10px}.no-print{display:none!important}.svgbox{break-inside:avoid}.page-break{page-break-before:always}
+main{max-width:none;margin:0}.kpis{grid-template-columns:repeat(4,1fr)}
+}
+
+.offer-info-card .wide{grid-column:1/-1}
+.offer-header{display:flex;justify-content:space-between;align-items:flex-start;padding:18px 20px;border-bottom:2px solid #1e3a5f;margin-bottom:14px}
+.offer-company{font-size:20px;font-weight:800}
+.offer-title{font-size:24px;font-weight:800;margin-top:5px}
+.offer-meta{text-align:right;font-size:12px;line-height:1.8}
+.print-only{display:none}
+@media print{
+  .print-only{display:block!important}
+  .offer-header{display:flex!important}
+  .offer-info-card{display:none!important}
+}
+</style>
+<style>
+/* V15 Tasarım Yükleri */
+.load-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.load-card{border:1px solid #d9e0e7;border-radius:12px;padding:12px;background:#fff}.load-card h3{margin:0 0 10px;font-size:15px}.load-note{font-size:12px;line-height:1.45;color:#58636f;margin-top:10px}.load-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}.load-kpi{border:1px solid #d9e0e7;border-radius:10px;padding:10px;background:#f8fafc}.load-kpi b{display:block;font-size:12px;color:#59636e;margin-bottom:5px}.load-kpi span{font-size:17px;font-weight:700}@media(max-width:900px){.load-grid,.load-summary{grid-template-columns:1fr 1fr}}@media(max-width:600px){.load-grid,.load-summary{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<h1>Çelik Hangar — Yaklaşık Maliyet & Teklif V11</h1>
+<p>Parametrik geometri, profil seçimi, tonaj, kaplama, maliyet analizi ve yazdırılabilir teklif görünümü</p>
+</header>
+<main>
+<div class="grid">
+<section class="card no-print">
+<h2>Girdiler</h2>
+<div class="form">
+<label>Proje / İş adı</label><input id="project" class="input" type="text" value="Çelik Hangar Projesi">
+<label>Müşteri</label><input id="customer" class="input" type="text" value="">
+<label>Teklif no</label><input id="offerNo" class="input" type="text" value="TH-001">
+<label>Teklif tarihi</label><input id="offerDate" class="input" type="date">
+<label>Hangar uzunluğu (m)</label><input id="L" class="input" type="number" value="60" min="1" step=".1">
+<label>Hangar açıklığı / eni (m)</label><input id="W" class="input" type="number" value="20" min="1" step=".1">
+<label>Ayak yüksekliği (m)</label><input id="H" class="input" type="number" value="6" min="1" step=".1">
+<label>Aks aralığı (m)</label><input id="bay" class="input" type="number" value="6" min=".1" step=".1">
+<label>Hadde stok boyu (m)</label><input id="stock" class="input" type="number" value="6" min=".1" step=".1">
+<label>Çatı tipi</label><select id="roof" class="input"><option>Çift eğimli</option><option>Tek eğimli</option><option>Tonoz</option></select>
+<label>Çatı eğimi modu</label><select id="slopeMode" class="input"><option>Manuel</option><option>Otomatik</option></select>
+<label>Çatı eğimi (%)</label><input id="slope" class="input" type="number" value="10" min="0" step=".1">
+<label>Tonoz yükselişi (m)</label><input id="rise" class="input" type="number" value="4" min=".1" step=".1">
+<label>Maks. aşık aralığı (m)</label><input id="purlinGap" class="input" type="number" value="1" min=".1" step=".1">
+<label>Çapraz aks aralığı (aks)</label><input id="braceBay" class="input" type="number" value="2" min="1" step="1">
+<label>Ön kapı açıklığı (m)</label><input id="doorW" class="input" type="number" value="8" min="0" step=".1">
+<label>Ön kapı yüksekliği (m)</label><input id="doorH" class="input" type="number" value="5" min="0" step=".1">
+
+<h3>Taşıyıcı profiller</h3>
+<label>Kolon profili</label><select id="col" class="input profile"></select>
+<label>Kiriş / mertek profili</label><select id="beam" class="input profile"></select>
+<label>Makas tipi</label><select id="truss" class="input"><option>Yok</option><option>Prizmatik makas</option><option>Çatı makası</option></select>
+<label>Makas ana elemanı</label><select id="trussProfile" class="input profile"></select>
+<label>Çatı çaprazı</label><select id="brace" class="input profile"></select>
+
+<h3>Aşık / cephe profilleri</h3>
+<label>Çatı aşık profili</label><select id="purlin" class="input profile"></select>
+<label>Yan kaplama girt profili</label><select id="girt" class="input profile"></select>
+<label>Kalkan profil kesiti</label><select id="gable" class="input profile"></select>
+
+<h3>Çelik kg/m² hesabı</h3>
+<label>Hesaplama yöntemi</label>
+<select id="steelKgM2Mode" class="input">
+  <option value="calc" selected>Profil/metrajdan hesapla</option>
+  <option value="target">kg/m² değerini kullan</option>
+</select>
+<label>Hedef çelik miktarı (kg/m²)</label>
+<input id="targetSteelKgM2" class="input" type="number" value="10" min="0" step=".1">
+<p class="note">Hedef modunda toplam çelik = bina taban alanı × kg/m² olarak alınır ve ana çelik maliyetine doğrudan yansıtılır.</p>
+<h3>Fiyatlar (USD)</h3>
+<label>Çelik (USD/ton)</label><input id="steelPrice" class="input" type="number" value="1200" step="1">
+<label>Çatı kaplama (USD/m²)</label><input id="roofPrice" class="input" type="number" value="15" step=".1">
+<label>Yan/kalkan kaplama (USD/m²)</label><input id="wallPrice" class="input" type="number" value="14" step=".1">
+<label>Ankraj (USD/adet)</label><input id="anchorPrice" class="input" type="number" value="8" step=".1">
+<label>Bağlantı plakası (USD/kg)</label><input id="platePrice" class="input" type="number" value="2.5" step=".1">
+<label>Sarf (% çelik)</label><input id="wastePct" class="input" type="number" value="4" step=".1">
+<label>İşçilik (% çelik)</label><input id="laborPct" class="input" type="number" value="35" step=".1">
+<label>Boya (% çelik)</label><input id="paintPct" class="input" type="number" value="8" step=".1">
+<label>Diğer (% doğrudan maliyet)</label><input id="otherPct" class="input" type="number" value="5" step=".1">
+</div>
+<div class="actions">
+<button class="btn primary" onclick="calculate()">Hesapla</button>
+<button class="btn secondary" onclick="window.print()">Teklif / PDF</button>
+<button class="btn secondary" onclick="saveJson()">Parametreleri Kaydet</button>
+</div>
+<p class="note">PDF butonu tarayıcının yazdırma ekranını açar. Buradan “PDF olarak kaydet” seçilerek teklif dosyası oluşturulabilir. Nihai statik tasarım değildir.</p>
+</section>
+
+<section>
+<div class="card offer-info-card">
+<h2>Teklif Bilgileri</h2>
+<div class="grid">
+  <div><label>Firma adı</label><input id="companyName" class="input" placeholder="Firma adı"></div>
+  <div><label>Müşteri / Firma</label><input id="customerName" class="input" placeholder="Müşteri adı"></div>
+  <div><label>Proje adı</label><input id="projectName" class="input" placeholder="Çelik Hangar Projesi"></div>
+  <div><label>Teklif numarası</label><input id="offerNo" class="input" placeholder="TH-2026-001"></div>
+  <div><label>Teklif tarihi</label><input id="offerDate" class="input" type="date" value="2026-09-21"></div>
+  <div><label>Geçerlilik süresi (gün)</label><input id="validDays" class="input" type="number" value="15" min="1"></div>
+  <div><label>Ödeme şartı</label><input id="paymentTerms" class="input" placeholder="Örn. %50 peşin, bakiye sevkiyat öncesi"></div>
+  <div><label>Teslim süresi</label><input id="deliveryTime" class="input" placeholder="Örn. 6-8 hafta"></div>
+  <div class="wide"><label>Teklif notu / kapsam</label><textarea id="offerNote" class="input" rows="3" placeholder="Teklif kapsamı, montaj ve diğer açıklamalar..."></textarea></div>
+</div>
+<label style="display:flex;align-items:center;gap:8px;margin-top:10px">
+  <input id="showDualCurrency" type="checkbox" checked>
+  Teklifte USD ve TL karşılığını birlikte göster
+</label>
+</div>
+<section id="designLoadsPanel" class="card section" style="margin-top:14px">
+<h2>Bölge / Tasarım Yükleri</h2>
+<div class="load-grid">
+<div class="load-card"><h3>Proje Konumu</h3>
+<label>İl</label><select id="loadCity"><option value="">İl seçiniz</option><option value="Adana">Adana</option><option value="Adıyaman">Adıyaman</option><option value="Afyonkarahisar">Afyonkarahisar</option><option value="Ağrı">Ağrı</option><option value="Aksaray">Aksaray</option><option value="Amasya">Amasya</option><option value="Ankara">Ankara</option><option value="Antalya">Antalya</option><option value="Ardahan">Ardahan</option><option value="Artvin">Artvin</option><option value="Aydın">Aydın</option><option value="Balıkesir">Balıkesir</option><option value="Bartın">Bartın</option><option value="Batman">Batman</option><option value="Bayburt">Bayburt</option><option value="Bilecik">Bilecik</option><option value="Bingöl">Bingöl</option><option value="Bitlis">Bitlis</option><option value="Bolu">Bolu</option><option value="Burdur">Burdur</option><option value="Bursa">Bursa</option><option value="Çanakkale">Çanakkale</option><option value="Çankırı">Çankırı</option><option value="Çorum">Çorum</option><option value="Denizli">Denizli</option><option value="Diyarbakır">Diyarbakır</option><option value="Düzce">Düzce</option><option value="Edirne">Edirne</option><option value="Elazığ">Elazığ</option><option value="Erzincan">Erzincan</option><option value="Erzurum">Erzurum</option><option value="Eskişehir">Eskişehir</option><option value="Gaziantep">Gaziantep</option><option value="Giresun">Giresun</option><option value="Gümüşhane">Gümüşhane</option><option value="Hakkâri">Hakkâri</option><option value="Hatay">Hatay</option><option value="Iğdır">Iğdır</option><option value="Isparta">Isparta</option><option value="İstanbul">İstanbul</option><option value="İzmir">İzmir</option><option value="Kahramanmaraş">Kahramanmaraş</option><option value="Karabük">Karabük</option><option value="Karaman">Karaman</option><option value="Kars">Kars</option><option value="Kastamonu">Kastamonu</option><option value="Kayseri">Kayseri</option><option value="Kırıkkale">Kırıkkale</option><option value="Kırklareli">Kırklareli</option><option value="Kırşehir">Kırşehir</option><option value="Kilis">Kilis</option><option value="Kocaeli">Kocaeli</option><option value="Konya">Konya</option><option value="Kütahya">Kütahya</option><option value="Malatya">Malatya</option><option value="Manisa">Manisa</option><option value="Mardin">Mardin</option><option value="Mersin">Mersin</option><option value="Muğla">Muğla</option><option value="Muş">Muş</option><option value="Nevşehir">Nevşehir</option><option value="Niğde">Niğde</option><option value="Ordu">Ordu</option><option value="Osmaniye">Osmaniye</option><option value="Rize">Rize</option><option value="Sakarya">Sakarya</option><option value="Samsun">Samsun</option><option value="Siirt">Siirt</option><option value="Sinop">Sinop</option><option value="Sivas">Sivas</option><option value="Şanlıurfa">Şanlıurfa</option><option value="Şırnak">Şırnak</option><option value="Tekirdağ">Tekirdağ</option><option value="Tokat">Tokat</option><option value="Trabzon">Trabzon</option><option value="Tunceli">Tunceli</option><option value="Uşak">Uşak</option><option value="Van">Van</option><option value="Yalova">Yalova</option><option value="Yozgat">Yozgat</option><option value="Zonguldak">Zonguldak</option></select>
+<label>İlçe</label><select id="loadDistrict"><option value="">Önce il seçiniz</option></select>
+<div id="manualDistrictWrap" style="display:none"><label>İlçe (manuel)</label><input id="manualDistrict" type="text" placeholder="İlçe adını yazınız"></div>
+<label>Rakım (m)</label><input id="loadAltitude" type="number" min="0" step="1" value="0">
+</div>
+<div class="load-card"><h3>Kar Yükü</h3><label>Zemin karakteristik kar yükü, sk (kN/m²)</label><input id="snowSk" type="number" min="0" step="0.01" value="0.75"><label>Şekil katsayısı, μ</label><input id="snowMu" type="number" min="0" step="0.01" value="0.80"><label>Maruz kalma, Ce</label><input id="snowCe" type="number" min="0" step="0.05" value="1.00"><label>Isı katsayısı, Ct</label><input id="snowCt" type="number" min="0" step="0.05" value="1.00"></div>
+<div class="load-card"><h3>Rüzgâr</h3><label>Temel rüzgâr hızı, vb,0 (m/s)</label><input id="windVb0" type="number" min="0" step="0.5" value="28"><label>Doğrultu katsayısı, cdir</label><input id="windCdir" type="number" min="0" step="0.05" value="1.00"><label>Mevsim katsayısı, cseason</label><input id="windCseason" type="number" min="0" step="0.05" value="1.00"><label>Arazi kategorisi</label><select id="windTerrain"><option value="0">0 - Deniz/kıyı açık alan</option><option value="1">I - Göl/düz açık alan</option><option value="2" selected>II - Az bitkili açık alan</option><option value="3">III - Düzenli bitki/yapı bulunan alan</option><option value="4">IV - Yoğun kentsel alan</option></select></div>
+<div class="load-card"><h3>Deprem</h3><label>Yerel zemin sınıfı</label><select id="soilClass"><option>ZA</option><option>ZB</option><option selected>ZC</option><option>ZD</option><option>ZE</option><option>ZF</option></select><label>SS</label><input id="eqSS" type="number" min="0" step="0.001" placeholder="AFAD TDTH değeri"><label>S1</label><input id="eqS1" type="number" min="0" step="0.001" placeholder="AFAD TDTH değeri"><label>PGA (g)</label><input id="eqPGA" type="number" min="0" step="0.001" placeholder="AFAD TDTH değeri"></div>
+</div>
+<div class="load-summary"><div class="load-kpi"><b>Çatı kar yükü</b><span id="snowRoofOut">0.60 kN/m²</span></div><div class="load-kpi"><b>Esas rüzgâr hızı</b><span id="windVbOut">28.0 m/s</span></div><div class="load-kpi"><b>Yaklaşık temel hız basıncı</b><span id="windQOut">0.49 kN/m²</span></div><div class="load-kpi"><b>Deprem girdileri</b><span id="eqOut">ZC / manuel</span></div></div>
+<div class="load-note">Kar hesabı: s = μ × Ce × Ct × sk. Rüzgâr basıncı burada temel hızdan yaklaşık dinamik basınçtır; gerçek yüzey basınçları için arazi, yükseklik, orografi ve dış/iç basınç katsayıları ayrıca değerlendirilmelidir. SS, S1 ve PGA değerleri proje koordinatı için AFAD Türkiye Deprem Tehlike Haritası'ndan alınmalıdır. Bu bölüm ön maliyet/ön değerlendirme içindir; taşıyıcı sistem boyutlandırması ve uygulama projesi yerine geçmez.</div>
+</section>
+<div class="card">
+<h2>Hangar Perspektif Görünüşü</h2>
+<div class="offer-head print-only"><div class="offer-box"><strong id="printProject">Çelik Hangar Projesi</strong><span id="printCustomer">Müşteri</span></div><div class="offer-box"><strong>Teklif No</strong><span id="printOfferNo">TH-001</span><br><strong>Tarih</strong><span id="printOfferDate"></span></div></div>
+<div class="perspective-wrap"><svg id="hangarSvg" viewBox="0 0 1100 520" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div class="perspective-legend"><span class="badge">● Ana taşıyıcı çerçeveler</span><span class="badge">— Aşık / girtler</span><span class="badge">▰ Kaplama yüzeyleri</span><span class="badge">↔ Otomatik ölçülendirme</span></div>
+<p class="note">Perspektif görünüş, girilen ölçülere göre otomatik oluşturulur. Çatı tipi, eğim, aks aralığı ve kapı açıklığı değiştikçe model güncellenir. Görsel sunum amaçlıdır; imalat/statik çizim değildir.</p>
+</div>>
+
+<div class="card">
+<h2>Özet</h2>
+<div class="kpis">
+<div class="kpi"><small>Çelik tonajı</small><strong id="kTon">-</strong></div>
+<div class="kpi"><small>Çatı kaplama</small><strong id="kRoof">-</strong></div>
+<div class="kpi"><small>Cephe kaplama</small><strong id="kWall">-</strong></div>
+<div class="kpi"><small>Genel toplam</small><strong id="kTotal">-</strong><small id="kDual" style="display:block;margin-top:4px;color:var(--muted)"></small></div><div class="kpi"><small>Kullanılan çelik</small><strong id="kSteelKgM2">-</strong><small id="kSteelKgM2Sub" style="display:block;margin-top:4px;color:var(--muted)">kg/m²</small></div>
+<div class="kpi"><small>Ana çelik maliyeti</small><strong id="kMainSteelCost">-</strong><small style="display:block;margin-top:4px;color:var(--muted)">USD</small></div>
+<div class="kpi"><small>Kullanılan çelik</small><strong id="kSteelKgM2">-</strong><small id="kSteelKgM2Sub" style="display:block;margin-top:4px;color:var(--muted)">kg/m²</small></div>
+</div>
+<div id="geometrySummary" style="margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:#f7fafc;font-size:13px">
+  <b>Geometri:</b> Ayak yüksekliği: <span id="sumH">-</span> m · Mahya/üst kot: <span id="sumRidge">-</span> m
+  <span style="float:right"><b>Para birimi:</b> <span id="sumCurrency">USD</span></span>
+<div style="margin-top:8px"><b>Çelik yoğunluğu:</b> <span id="sumSteelKgM2">-</span> kg/m²
+  <span id="sumSteelTarget" style="margin-left:12px;color:var(--muted)"></span>
+</div>
+</div><div id="offerSummaryPrint" class="print-only" style="margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:8px">
+  <b>Müşteri:</b> <span id="pCustomer">-</span>
+  &nbsp; | &nbsp; <b>Ödeme:</b> <span id="pPayment">-</span>
+  &nbsp; | &nbsp; <b>Teslim:</b> <span id="pDelivery">-</span>
+  <div style="margin-top:8px"><b>Kapsam / Not:</b> <span id="pNote">-</span></div>
+</div>
+
+</div>
+
+<div class="offer-header print-only" id="offerHeader">
+  <div>
+    <div class="offer-company" id="pCompany">FİRMA</div>
+    <div class="offer-title" id="pProject">ÇELİK HANGAR TEKLİFİ</div>
+  </div>
+  <div class="offer-meta">
+    <div><b>Teklif No:</b> <span id="pOfferNo">-</span></div>
+    <div><b>Tarih:</b> <span id="pOfferDate">-</span></div>
+    <div><b>Geçerlilik:</b> <span id="pValid">-</span></div>
+  </div>
+</div>
+<div class="card print-only" style="margin-top:12px">
+<h2>Çelik Kullanım Yoğunluğu</h2>
+<p style="margin:0;color:var(--muted)">Toplam çelik miktarının bina taban alanına oranı: <b><span id="pSteelKgM2">-</span> kg/m²</b>.</p>
+</div>
+
+<div class="card" style="margin-top:12px">
+<h2>Önemli Geometri Notu</h2>
+<p style="margin:0;color:var(--muted)">Bu programda ana düşey ölçü <b>Ayak Yüksekliği</b> olarak alınır. Mahya/üst kot, çatı tipi ve eğimine göre otomatik hesaplanır; yapısal statik proje yerine yaklaşık metraj ve maliyet çalışması amacıyla kullanılır.</p>
+</div>
+
+<div class="card page-break">
+<h2>Maliyet Analizi</h2>
+<table><thead><tr><th>Kalem</th><th>Miktar</th><th>Birim</th><th>Birim fiyat</th><th>Tutar USD</th><th>%</th></tr></thead>
+<tbody id="costBody"></tbody>
+<tfoot><tr><th>GENEL TOPLAM</th><th></th><th></th><th></th><th id="grand" class="total"></th><th>100%</th></tr></tfoot></table>
+</div>
+
+<div class="card">
+<h2>Çelik Tonaj Dağılımı</h2>
+<table><thead><tr><th>Kalem</th><th>Ton</th><th>%</th></tr></thead><tbody id="steelBody"></tbody></table>
+</div>
+
+<div class="card">
+<h2>Kaplama Metrajı</h2>
+<table><thead><tr><th>Kalem</th><th>Alan</th><th>Fire / bindirme</th><th>Satın alma alanı</th></tr></thead><tbody id="coverBody"></tbody></table>
+</div>
+
+<div class="card">
+<h2>Kesim / Fire Önizlemesi</h2>
+<table><thead><tr><th>Kalem</th><th>Yaklaşık eleman boyu</th><th>Stok boyu</th><th>Stok adedi</th><th>Teorik fire</th></tr></thead><tbody id="cutBody"></tbody></table>
+</div>
+
+<div class="card">
+<h2>Teklif Notları</h2>
+<p>Bu teklif, kullanıcı tarafından girilen geometrik ve mali parametrelerle oluşturulan yaklaşık metraj ve maliyet çalışmasıdır. Profil yeterliliği, bağlantı hesabı, rüzgâr/kar/deprem etkileri, sehim, burkulma, temel ve zemin hesabı ayrıca statik proje kapsamında doğrulanmalıdır.</p>
+<p>Teklif tarihi: <span id="date"></span></p><p>Proje: <span id="projectSummary"></span> · Müşteri: <span id="customerSummary"></span> · Teklif No: <span id="offerSummary"></span></p>
+</div>
+</section>
+</div>
+</main>
+<script>
+const profiles = [
+["HEA 100","HEA",16.7],["HEA 120","HEA",19.9],["HEA 140","HEA",24.7],["HEA 160","HEA",30.4],["HEA 180","HEA",35.5],["HEA 200","HEA",42.3],["HEA 220","HEA",50.5],["HEA 240","HEA",60.3],["HEA 260","HEA",68.2],["HEA 280","HEA",76.4],["HEA 300","HEA",88.3],["HEA 320","HEA",97.6],["HEA 340","HEA",105],["HEA 360","HEA",112],["HEA 400","HEA",125],
+["HEB 100","HEB",20.4],["HEB 120","HEB",26.7],["HEB 140","HEB",33.7],["HEB 160","HEB",42.6],["HEB 180","HEB",51.2],["HEB 200","HEB",61.3],["HEB 220","HEB",71.5],["HEB 240","HEB",83.2],["HEB 260","HEB",93],["HEB 280","HEB",103],["HEB 300","HEB",117],["HEB 320","HEB",127],["HEB 340","HEB",134],["HEB 360","HEB",142],["HEB 400","HEB",155],
+["IPE 80","IPE",6],["IPE 100","IPE",8.1],["IPE 120","IPE",10.4],["IPE 140","IPE",12.9],["IPE 160","IPE",15.8],["IPE 180","IPE",18.8],["IPE 200","IPE",22.4],["IPE 220","IPE",26.2],["IPE 240","IPE",30.7],["IPE 270","IPE",36.1],["IPE 300","IPE",42.2],["IPE 330","IPE",49.1],["IPE 360","IPE",57.1],["IPE 400","IPE",66.3],["IPE 450","IPE",77.6],["IPE 500","IPE",90.7],["IPE 550","IPE",106],["IPE 600","IPE",122],
+["UPE 80","UPE",7.9],["UPE 100","UPE",10.5],["UPE 120","UPE",12.1],["UPE 140","UPE",14.5],["UPE 160","UPE",17],["UPE 180","UPE",19.7],["UPE 200","UPE",22.1],["UPE 220","UPE",25.1],["UPE 240","UPE",29],["UPE 270","UPE",35.2],["UPE 300","UPE",42.2],["UPE 330","UPE",49.3],["UPE 360","UPE",57.1],["UPE 400","UPE",66.3],
+["UPN 80","UPN",8.6],["UPN 100","UPN",10.6],["UPN 120","UPN",13.4],["UPN 140","UPN",16],["UPN 160","UPN",18.8],["UPN 180","UPN",22],["UPN 200","UPN",25.3],["UPN 220","UPN",29.4],["UPN 240","UPN",33.2],["UPN 260","UPN",37.9],["UPN 280","UPN",41.8],["UPN 300","UPN",46.2],
+["Kutu 40x40x2","Kutu",2.39],["Kutu 50x50x2","Kutu",3.01],["Kutu 60x40x2","Kutu",3.01],["Kutu 60x60x2","Kutu",3.64],["Kutu 80x40x2","Kutu",3.64],["Kutu 80x80x2","Kutu",4.89],["Kutu 100x50x2","Kutu",4.58],["Kutu 100x50x3","Kutu",6.7],["Kutu 100x100x3","Kutu",8.99],["Kutu 120x60x3","Kutu",8.14],["Kutu 120x80x3","Kutu",9.08],["Kutu 120x120x4","Kutu",14.82],["Kutu 140x60x3","Kutu",9.08],["Kutu 160x80x4","Kutu",14.82],["Kutu 180x80x4","Kutu",16.08],["Kutu 200x100x4","Kutu",17.65],["Kutu 200x100x5","Kutu",21.89],["Kutu 250x150x5","Kutu",30.53],["Kutu 300x200x6","Kutu",45.1],
+["Köşebent 40x40x4","Köşebent",2.42],["Köşebent 50x50x5","Köşebent",3.77],["Köşebent 60x60x6","Köşebent",5.42],["Köşebent 70x70x7","Köşebent",7.38],["Köşebent 75x75x6","Köşebent",6.85],["Köşebent 80x80x8","Köşebent",9.66],["Köşebent 90x90x9","Köşebent",12.1],["Köşebent 100x100x10","Köşebent",15]
+];
+const $=id=>document.getElementById(id), fmt=n=>Number(n||0).toLocaleString('tr-TR',{maximumFractionDigits:2});
+function fillProfiles(){
+document.querySelectorAll(".profile").forEach(s=>{s.innerHTML=profiles.map(p=>`<option value="${p[0]}">${p[0]} — ${p[2]} kg/m</option>`).join("")});
+$("col").value="HEA 300";$("beam").value="IPE 360";$("trussProfile").value="IPE 300";$("brace").value="Köşebent 50x50x5";$("purlin").value="Kutu 120x60x3";$("girt").value="Kutu 100x50x3";$("gable").value="Kutu 100x50x3";
+}
+function kgm(name){let p=profiles.find(x=>x[0]===name);return p?p[2]:0}
+function calculate(){
+let L=+$("L").value,W=+$("W").value,H=+$("H").value,bay=+$("bay").value,stock=+$("stock").value;
+let roof=$("roof").value,slope=$("slopeMode").value==="Otomatik"?10:+$("slope").value,rise=+$("rise").value,gap=Math.min(1,+$("purlinGap").value);
+let bays=Math.ceil(L/bay), actualL=L/bays, frames=bays+1;
+let half=W/2, sloped=Math.sqrt(half*half+Math.pow(half*slope/100,2));
+let roofLen=roof==="Çift eğimli"?2*sloped:roof==="Tek eğimli"?Math.sqrt(W*W+Math.pow(W*slope/100,2)):Math.PI*(half*half+rise*rise)/(2*rise);
+let roofArea=L*roofLen;
+let wallArea=2*L*H, gableArea=roof==="Tek eğimli"?W*H+0.5*W*(W*slope/100):roof==="Çift eğimli"?W*H+0.5*W*(W/2*slope/100):W*H+W*rise/2;
+let coverRoof=roofArea*1.03, coverWall=(wallArea+2*gableArea)*1.05;
+let pRows=Math.ceil((roof==="Tonoz"?rise+half:roofLen)/gap)+1;
+let purlinM=pRows*L;
+let girtRows=Math.ceil(H/gap)+1,girtM=girtRows*L*2;
+let gableM=(H+W)*2;
+let colM=frames*H;
+let beamM=frames*roofLen;
+let braceAxes=Math.max(1,Math.ceil(bays/(+$("braceBay").value||2)));
+let braceM=braceAxes*Math.sqrt(W*W+Math.pow(Math.max(H,roofLen/2),2))*2;
+let tons=[
+["Kolon",colM*kgm($("col").value)/1000],
+["Kiriş / mertek",beamM*kgm($("beam").value)/1000],
+["Çatı aşıkları",purlinM*kgm($("purlin").value)/1000],
+["Yan girtler",girtM*kgm($("girt").value)/1000],
+["Kalkan profilleri",gableM*kgm($("gable").value)/1000],
+["Çatı çaprazları",braceM*kgm($("brace").value)/1000]
+];
+let baseSteel=tons.reduce((a,x)=>a+x[1],0), plates=baseSteel*.08,totalSteel=baseSteel+plates;
+let floorArea=Math.max(.0001,L*W);
+let kgM2Mode=$("steelKgM2Mode").value;
+let targetKgM2=Math.max(0,+$("targetSteelKgM2").value||0);
+
+if(kgM2Mode==="target" && targetKgM2>0){
+  totalSteel=floorArea*targetKgM2/1000;
+  baseSteel=totalSteel/1.08;
+  plates=totalSteel-baseSteel;
+  let scale=baseSteel/Math.max(.0001,tons.reduce((a,x)=>a+x[1],0));
+  tons=tons.map(x=>[x[0],x[1]*scale]);
+}
+
+let steelPrice=+$("steelPrice").value, roofPrice=+$("roofPrice").value, wallPrice=+$("wallPrice").value, anchorPrice=+$("anchorPrice").value, platePrice=+$("platePrice").value;
+let anchors=frames*4, anchorCost=anchors*anchorPrice;
+let steelCost=totalSteel*steelPrice, plateCost=plates*1000*platePrice;
+let direct=steelCost+plateCost+anchorCost+coverRoof*roofPrice+coverWall*wallPrice;
+let waste=steelCost*(+$("wastePct").value/100),labor=steelCost*(+$("laborPct").value/100),paint=steelCost*(+$("paintPct").value/100),other=(direct+waste+labor+paint)*(+$("otherPct").value/100);
+let grand=direct+waste+labor+paint+other;
+let steelKgM2=totalSteel*1000/floorArea;
+
+$("kTon").textContent=fmt(totalSteel)+" ton";
+$("kRoof").textContent=fmt(coverRoof)+" m²";
+$("kWall").textContent=fmt(coverWall)+" m²";
+$("kTotal").textContent="$ "+fmt(grand);
+$("grand").textContent="$ "+fmt(grand);
+$("kSteelKgM2").textContent=fmt(steelKgM2);
+$("kSteelKgM2Sub").textContent=kgM2Mode==="target"?"kg/m² (hedef)":"kg/m² (hesaplanan)";
+$("kMainSteelCost").textContent="$ "+fmt(steelCost);
+
+$("steelBody").innerHTML=tons.map(x=>`<tr><td>${x[0]}</td><td>${fmt(x[1])}</td><td>${fmt(x[1]/totalSteel*100)}%</td></tr>`).join("")+`<tr><th>Plaka/detay</th><th>${fmt(plates)}</th><th>${fmt(plates/totalSteel*100)}%</th></tr><tr><th>TOPLAM</th><th>${fmt(totalSteel)}</th><th>100%</th></tr>`;
+
+let costs=[
+["Ana taşıyıcı ve profil çeliği",totalSteel,"ton",steelPrice,steelCost],
+["Bağlantı plakaları / detay",plates*1000,"kg",platePrice,plateCost],
+["Ankraj",anchors,"adet",anchorPrice,anchorCost],
+["Çatı kaplama",coverRoof,"m²",roofPrice,coverRoof*roofPrice],
+["Yan + kalkan kaplama",coverWall,"m²",wallPrice,coverWall*wallPrice],
+["Sarf",1,"% çelik",+$("wastePct").value/100,waste],
+["İşçilik",1,"% çelik",+$("laborPct").value/100,labor],
+["Boya / yüzey hazırlık",1,"% çelik",+$("paintPct").value/100,paint],
+["Diğer",1,"% doğrudan",+$("otherPct").value/100,other]
+];
+$("costBody").innerHTML=costs.map(x=>`<tr><td>${x[0]}</td><td>${fmt(x[1])}</td><td>${x[2]}</td><td>${x[2].includes("%")?fmt(x[3]*100)+"%":"$ "+fmt(x[3])}</td><td>$ ${fmt(x[4])}</td><td>${fmt(x[4]/grand*100)}%</td></tr>`).join("");
+
+$("coverBody").innerHTML=`<tr><td>Çatı</td><td>${fmt(roofArea)} m²</td><td>3%</td><td>${fmt(coverRoof)} m²</td></tr><tr><td>Yan + kalkan</td><td>${fmt(wallArea+2*gableArea)} m²</td><td>5%</td><td>${fmt(coverWall)} m²</td></tr><tr><th>Toplam</th><th></th><th></th><th>${fmt(coverRoof+coverWall)} m²</th></tr>`;
+
+let cut=[["Kolon",H,stock,Math.ceil(colM/stock),Math.ceil(colM/stock)*stock-colM],["Kiriş/mertek",roofLen,stock,Math.ceil(beamM/stock),Math.ceil(beamM/stock)*stock-beamM],["Aşık",actualL,stock,Math.ceil(purlinM/stock),Math.ceil(purlinM/stock)*stock-purlinM],["Girt",actualL,stock,Math.ceil(girtM/stock),Math.ceil(girtM/stock)*stock-girtM]];
+$("cutBody").innerHTML=cut.map(x=>`<tr><td>${x[0]}</td><td>${fmt(x[1])} m</td><td>${fmt(x[2])} m</td><td>${fmt(x[3])}</td><td>${fmt(x[4])} m</td></tr>`).join("");
+
+draw(L,W,H,roof,slope,frames);
+$("projectTitle").textContent=$("project").value||"Çelik Hangar Projesi";
+$("projectSummary").textContent=$("project").value||"-";
+$("customerSummary").textContent=$("customer").value||"-";
+$("offerSummary").textContent=$("offerNo").value||"-";
+$("printProject").textContent=$("project").value||"Çelik Hangar Projesi";
+$("printCustomer").textContent=$("customer").value||"-";
+$("printOfferNo").textContent=$("offerNo").value||"TH-001";
+$("printOfferDate").textContent=$("offerDate").value?new Date($("offerDate").value+"T00:00:00").toLocaleDateString("tr-TR"):new Date().toLocaleDateString("tr-TR");
+
+if($("sumSteelKgM2")) $("sumSteelKgM2").textContent=fmt(steelKgM2);
+if($("sumSteelTarget")) $("sumSteelTarget").textContent=kgM2Mode==="target"?"(hedef: "+fmt(targetKgM2)+" kg/m²)":"";
+if($("pSteelKgM2")) $("pSteelKgM2").textContent=fmt(steelKgM2);
+}
+function draw(L,W,H,roof,slope,frames){
+let svg=$("hangarSvg"), Wv=1100,Hv=520;
+let doorW=Math.min(Math.max(0,+$("doorW").value||0),W*0.9), doorH=Math.min(Math.max(0,+$("doorH").value||0),H*0.95);
+let depth=frames>1?Math.min(520,Math.max(360,frames*18)):420;
+let ox=115, oy=365, fw=690, fh=Math.min(245,Math.max(150,H*24));
+let dx=fw*0.26, dy=-depth*0.18;
+let frontL={x:ox,y:oy}, frontR={x:ox+fw,y:oy}, backL={x:ox+dx,y:oy+dy}, backR={x:ox+fw+dx,y:oy+dy};
+let wallTopF=oy-fh, wallTopB=oy+dy-fh;
+let roofRise=roof==="Tonoz"?Math.min(125,Math.max(55,+$("rise").value*22)):Math.min(105,Math.max(30,W*slope/100*5));
+let ridgeF={x:ox+fw/2,y:wallTopF-roofRise}, ridgeB={x:ox+fw/2+dx,y:wallTopB-roofRise};
+let esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+let parts=[];
+parts.push(`<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfe3f1"/><stop offset="1" stop-color="#f7fafc"/></linearGradient><linearGradient id="roofG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9fb2c1"/><stop offset="1" stop-color="#64798a"/></linearGradient><linearGradient id="wallG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d5dee5"/><stop offset="1" stop-color="#aab8c2"/></linearGradient><filter id="shadow"><feGaussianBlur stdDeviation="8"/></filter></defs>`);
+parts.push(`<rect width="1100" height="520" fill="url(#sky)"/><rect y="360" width="1100" height="160" fill="#d7d0c5"/><ellipse cx="560" cy="425" rx="420" ry="42" fill="#7d858b" opacity=".22" filter="url(#shadow)"/>`);
+// side wall and gable wall
+parts.push(`<polygon points="${frontR.x},${oy} ${backR.x},${oy+dy} ${backR.x},${wallTopB} ${frontR.x},${wallTopF}" fill="url(#wallG)" stroke="#3f5363" stroke-width="2"/>`);
+let gablePoly=roof==="Tek eğimli"?`${frontL.x},${wallTopF} ${frontR.x},${wallTopF-roofRise} ${frontR.x},${oy} ${frontL.x},${oy}`:roof==="Tonoz"?`${frontL.x},${wallTopF} ${frontR.x},${wallTopF} ${frontR.x},${oy} ${frontL.x},${oy}`:`${frontL.x},${oy} ${frontL.x},${wallTopF} ${ridgeF.x},${ridgeF.y} ${frontR.x},${wallTopF} ${frontR.x},${oy}`;
+parts.push(`<polygon points="${gablePoly}" fill="#c4cfd7" stroke="#344b5c" stroke-width="2"/>`);
+// roof planes
+if(roof==="Çift eğimli"){
+parts.push(`<polygon points="${frontL.x},${wallTopF} ${ridgeF.x},${ridgeF.y} ${ridgeB.x},${ridgeB.y} ${backL.x},${wallTopB}" fill="url(#roofG)" stroke="#344b5c" stroke-width="2"/>`);
+parts.push(`<polygon points="${ridgeF.x},${ridgeF.y} ${frontR.x},${wallTopF} ${backR.x},${wallTopB} ${ridgeB.x},${ridgeB.y}" fill="#738a9a" stroke="#344b5c" stroke-width="2"/>`);
+}else if(roof==="Tek eğimli"){
+parts.push(`<polygon points="${frontL.x},${wallTopF} ${frontR.x},${wallTopF-roofRise} ${backR.x},${wallTopB-roofRise} ${backL.x},${wallTopB}" fill="url(#roofG)" stroke="#344b5c" stroke-width="2"/>`);
+}else{
+let c1={x:frontL.x+fw*.18,y:wallTopF-30},c2={x:frontL.x+fw*.5,y:ridgeF.y},c3={x:frontL.x+fw*.82,y:wallTopF-30};
+parts.push(`<path d="M${frontL.x},${wallTopF} Q${frontL.x+fw*.5},${wallTopF-roofRise*2} ${frontR.x},${wallTopF} L${backR.x},${wallTopB} Q${frontL.x+fw*.5+dx},${wallTopB-roofRise*2} ${backL.x},${wallTopB} Z" fill="url(#roofG)" stroke="#344b5c" stroke-width="2"/>`);
+}
+// cladding ribs
+for(let i=1;i<13;i++){
+ let t=i/13, x=frontR.x+t*(backR.x-frontR.x), y=oy+t*dy, yt=wallTopF+t*(wallTopB-wallTopF);
+ parts.push(`<line x1="${x}" y1="${y}" x2="${x}" y2="${yt}" stroke="#8798a5" stroke-width="1" opacity=".7"/>`);
+}
+// front vertical ribs and door
+for(let i=1;i<8;i++){let x=frontL.x+fw*i/8;parts.push(`<line x1="${x}" y1="${oy}" x2="${x}" y2="${wallTopF}" stroke="#81929f" stroke-width="1" opacity=".7"/>`)}
+if(doorW>0){let dw=fw*(doorW/W), dLeft=frontL.x+(fw-dw)/2, dRight=dLeft+dw, dTop=oy-fh*(doorH/H);parts.push(`<rect x="${dLeft}" y="${dTop}" width="${dw}" height="${oy-dTop}" rx="2" fill="#263640" stroke="#172b38" stroke-width="4"/><path d="M${dLeft},${dTop} L${dRight},${dTop}" stroke="#d7e0e6" stroke-width="3"/>`);}
+// structural frames
+let n=Math.max(2,Math.min(frames,13));
+for(let i=0;i<n;i++){
+ let t=i/(n-1), bx=frontL.x+t*(backL.x-frontL.x), by=oy+t*dy, tx=frontL.x+fw+t*dx, ty=oy+t*dy;
+ if(roof==="Çift eğimli"){
+   let rx=frontL.x+fw/2+t*dx, ry=wallTopF+t*(wallTopB-wallTopF)-roofRise;
+   parts.push(`<path d="M${bx},${by} L${bx},${wallTopF+t*(wallTopB-wallTopF)} M${tx},${ty} L${tx},${wallTopF+t*(wallTopB-wallTopF)} M${bx},${wallTopF+t*(wallTopB-wallTopF)} L${rx},${ry} L${tx},${wallTopF+t*(wallTopB-wallTopF)}" stroke="#344b5c" stroke-width="3" fill="none"/>`);
+ } else if(roof==="Tek eğimli") {
+   let y1=wallTopF+t*(wallTopB-wallTopF), y2=y1-roofRise; parts.push(`<path d="M${bx},${by} L${bx},${y1} M${tx},${ty} L${tx},${y2} M${bx},${y1} L${tx},${y2}" stroke="#344b5c" stroke-width="3" fill="none"/>`);
+ } else {
+   let y=wallTopF+t*(wallTopB-wallTopF); parts.push(`<path d="M${bx},${by} L${bx},${y} M${tx},${ty} L${tx},${y} M${bx},${y} Q${frontL.x+fw*.5+t*dx},${y-roofRise*2} ${tx},${y}" stroke="#344b5c" stroke-width="3" fill="none"/>`);
+ }
+}
+// roof purlins
+for(let i=1;i<7;i++){
+ let t=i/7;
+ if(roof==="Çift eğimli"){
+  let lx=frontL.x+fw*.5*t, ly=wallTopF-roofRise*t; let rx=frontL.x+fw-(fw*.5*t), ry=wallTopF-roofRise*t; parts.push(`<line x1="${lx}" y1="${ly}" x2="${lx+dx}" y2="${ly+dy}" stroke="#526978" stroke-width="2"/><line x1="${rx}" y1="${ry}" x2="${rx+dx}" y2="${ry+dy}" stroke="#526978" stroke-width="2"/>`);
+ } else if(roof==="Tek eğimli") {let x=frontL.x+fw*t,y=wallTopF-roofRise*t;parts.push(`<line x1="${x}" y1="${y}" x2="${x+dx}" y2="${y+dy}" stroke="#526978" stroke-width="2"/>`)}
+}
+// bracing on side
+let brA={x:frontR.x+fw*.15,y:oy},brB={x:frontR.x+fw*.48,y:wallTopF};let brC={x:frontR.x+fw*.48,y:oy},brD={x:frontR.x+fw*.15,y:wallTopF};parts.push(`<line x1="${brA.x}" y1="${brA.y}" x2="${brB.x}" y2="${brB.y}" stroke="#a04b35" stroke-width="2"/><line x1="${brC.x}" y1="${brC.y}" x2="${brD.x}" y2="${brD.y}" stroke="#a04b35" stroke-width="2"/>`);
+// dimensions
+let dimY=452;parts.push(`<line x1="${frontL.x}" y1="${dimY}" x2="${frontR.x}" y2="${dimY}" stroke="#334c5c"/><line x1="${frontL.x}" y1="${dimY-8}" x2="${frontL.x}" y2="${dimY+8}" stroke="#334c5c"/><line x1="${frontR.x}" y1="${dimY-8}" x2="${frontR.x}" y2="${dimY+8}" stroke="#334c5c"/><text x="${(frontL.x+frontR.x)/2}" y="${dimY+22}" text-anchor="middle" font-size="16" fill="#233746" font-weight="700">Açıklık ${fmt(W)} m</text>`);
+let sideX=frontR.x+85;parts.push(`<line x1="${frontR.x+10}" y1="${oy}" x2="${backR.x+55}" y2="${oy+dy}" stroke="#334c5c"/><text x="${sideX+20}" y="${oy-8}" font-size="15" fill="#233746" font-weight="700">Uzunluk ${fmt(L)} m</text>`);
+parts.push(`<line x1="${frontL.x-45}" y1="${oy}" x2="${frontL.x-45}" y2="${wallTopF}" stroke="#334c5c"/><line x1="${frontL.x-52}" y1="${oy}" x2="${frontL.x-38}" y2="${oy}" stroke="#334c5c"/><line x1="${frontL.x-52}" y1="${wallTopF}" x2="${frontL.x-38}" y2="${wallTopF}" stroke="#334c5c"/><text x="${frontL.x-62}" y="${(oy+wallTopF)/2}" transform="rotate(-90 ${frontL.x-62} ${(oy+wallTopF)/2})" text-anchor="middle" font-size="15" fill="#233746" font-weight="700">Saçak ${fmt(H)} m</text>`);
+parts.push(`<text x="35" y="35" font-size="20" fill="#173b5b" font-weight="800">${esc($("project").value||"Çelik Hangar Projesi")}</text><text x="35" y="60" font-size="13" fill="#52626e">${esc($("roof").value)} · ${fmt(L)} × ${fmt(W)} m · ${fmt(H)} m saçak · ${frames} aks</text>`);
+svg.innerHTML=parts.join('');
+}
+function saveJson(){
+let data={project:$("project").value,customer:$("customer").value,offerNo:$("offerNo").value,offerDate:$("offerDate").value,doorW:+$("doorW").value,doorH:+$("doorH").value,L:+$("L").value,W:+$("W").value,H:+$("H").value,bay:+$("bay").value,stock:+$("stock").value,roof:$("roof").value,slope:+$("slope").value,slopeMode:$("slopeMode").value,rise:+$("rise").value,purlinGap:+$("purlinGap").value,col:$("col").value,beam:$("beam").value,truss:$("truss").value,trussProfile:$("trussProfile").value,brace:$("brace").value,purlin:$("purlin").value,girt:$("girt").value,gable:$("gable").value};
+let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="hangar-parametreleri.json";a.click();
+}
+$("offerDate").value=new Date().toISOString().slice(0,10);$("date").textContent=new Date().toLocaleDateString("tr-TR");fillProfiles();calculate();
+document.querySelectorAll("input,select").forEach(e=>e.addEventListener("change",calculate));
+</script>
+<script>
+(function(){function n(id,d){var e=document.getElementById(id),v=e?parseFloat(e.value):NaN;return isFinite(v)?v:d}function s(id,t){var e=document.getElementById(id);if(e)e.textContent=t}function updateDesignLoads(){var sk=n('snowSk',0),mu=n('snowMu',0),ce=n('snowCe',1),ct=n('snowCt',1),snow=sk*mu*ce*ct;var vb0=n('windVb0',0),cd=n('windCdir',1),cs=n('windCseason',1),vb=vb0*cd*cs,q=.5*1.25*vb*vb/1000;var soil=document.getElementById('soilClass'),ss=document.getElementById('eqSS'),s1=document.getElementById('eqS1'),pga=document.getElementById('eqPGA'),a=[];s('snowRoofOut',snow.toFixed(2)+' kN/m²');s('windVbOut',vb.toFixed(1)+' m/s');s('windQOut',q.toFixed(2)+' kN/m²');if(ss&&ss.value)a.push('SS '+ss.value);if(s1&&s1.value)a.push('S1 '+s1.value);if(pga&&pga.value)a.push('PGA '+pga.value+'g');s('eqOut',(soil?soil.value:'-')+' / '+(a.length?a.join(' · '):'manuel'))}document.addEventListener('input',function(e){if(e.target&&e.target.closest&&e.target.closest('#designLoadsPanel'))updateDesignLoads()});document.addEventListener('change',function(e){if(e.target&&e.target.closest&&e.target.closest('#designLoadsPanel'))updateDesignLoads()});document.addEventListener('DOMContentLoaded',updateDesignLoads);window.updateDesignLoads=updateDesignLoads})();
+</script>
+<script>
+(function(){
+var districtMap={"İstanbul": ["Adalar", "Arnavutköy", "Ataşehir", "Avcılar", "Bağcılar", "Bahçelievler", "Bakırköy", "Başakşehir", "Bayrampaşa", "Beşiktaş", "Beykoz", "Beylikdüzü", "Beyoğlu", "Büyükçekmece", "Çatalca", "Çekmeköy", "Esenler", "Esenyurt", "Eyüpsultan", "Fatih", "Gaziosmanpaşa", "Güngören", "Kadıköy", "Kağıthane", "Kartal", "Küçükçekmece", "Maltepe", "Pendik", "Sancaktepe", "Sarıyer", "Silivri", "Sultanbeyli", "Sultangazi", "Şile", "Şişli", "Tuzla", "Ümraniye", "Üsküdar", "Zeytinburnu"], "Ankara": ["Akyurt", "Altındağ", "Ayaş", "Bala", "Beypazarı", "Çamlıdere", "Çankaya", "Çubuk", "Elmadağ", "Etimesgut", "Evren", "Gölbaşı", "Güdül", "Haymana", "Kahramankazan", "Kalecik", "Keçiören", "Kızılcahamam", "Mamak", "Nallıhan", "Polatlı", "Pursaklar", "Sincan", "Şereflikoçhisar", "Yenimahalle"], "İzmir": ["Aliağa", "Balçova", "Bayındır", "Bayraklı", "Bergama", "Beydağ", "Bornova", "Buca", "Çeşme", "Çiğli", "Dikili", "Foça", "Gaziemir", "Güzelbahçe", "Karabağlar", "Karaburun", "Karşıyaka", "Kemalpaşa", "Kınık", "Kiraz", "Konak", "Menderes", "Menemen", "Narlıdere", "Ödemiş", "Seferihisar", "Selçuk", "Tire", "Torbalı", "Urla"], "Kocaeli": ["Başiskele", "Çayırova", "Darıca", "Derince", "Dilovası", "Gebze", "Gölcük", "İzmit", "Kandıra", "Karamürsel", "Kartepe", "Körfez"], "Bursa": ["Büyükorhan", "Gemlik", "Gürsu", "Harmancık", "İnegöl", "İznik", "Karacabey", "Keles", "Kestel", "Mudanya", "Mustafakemalpaşa", "Nilüfer", "Orhaneli", "Orhangazi", "Osmangazi", "Yenişehir", "Yıldırım"], "Tekirdağ": ["Çerkezköy", "Çorlu", "Ergene", "Hayrabolu", "Kapaklı", "Malkara", "Marmaraereğlisi", "Muratlı", "Saray", "Süleymanpaşa", "Şarköy"]};
+function fillDistricts(){
+ var city=document.getElementById('loadCity'),d=document.getElementById('loadDistrict'),w=document.getElementById('manualDistrictWrap');
+ if(!city||!d)return;
+ var list=districtMap[city.value]||[];
+ d.innerHTML='';
+ if(!city.value){d.innerHTML='<option value="">Önce il seçiniz</option>';w.style.display='none';return;}
+ if(list.length){
+   d.innerHTML='<option value="">İlçe seçiniz</option>'+list.map(function(x){return '<option value="'+x+'">'+x+'</option>'}).join('')+'<option value="__manual">Diğer / manuel ilçe</option>';
+   w.style.display='none';
+ }else{
+   d.innerHTML='<option value="__manual">İlçeyi manuel giriniz</option>';
+   w.style.display='block';
+ }
+}
+document.addEventListener('change',function(e){
+ if(e.target&&e.target.id==='loadCity')fillDistricts();
+ if(e.target&&e.target.id==='loadDistrict'){var w=document.getElementById('manualDistrictWrap');if(w)w.style.display=e.target.value==='__manual'?'block':'none';}
+});
+document.addEventListener('DOMContentLoaded',fillDistricts);
+})();
+</script>
+</body></html>

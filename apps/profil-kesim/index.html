@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hadde Mamulü Profil Kesim Optimizasyonu</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--line:#d8dee5;--text:#17212b;--muted:#64707d;--accent:#145ea8;--danger:#b42318}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+header{background:#123b63;color:#fff;padding:18px 20px}
+header h1{margin:0 0 5px;font-size:22px} header p{margin:0;opacity:.85}
+main{max-width:1400px;margin:auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 2px 8px #0000000b}
+.controls{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:12px}
+label{display:block;font-weight:700;font-size:13px;margin-bottom:5px}
+input,select,button{font:inherit}
+input,select{width:100%;padding:9px;border:1px solid #bfc7d0;border-radius:7px;background:#fff}
+button{border:0;border-radius:7px;padding:9px 13px;cursor:pointer;background:var(--accent);color:#fff;font-weight:700}
+button.secondary{background:#64707d} button.danger{background:var(--danger)} button.light{background:#e9eef3;color:#17212b}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:720px}
+th,td{border-bottom:1px solid var(--line);padding:7px;text-align:left}
+th{background:#eef2f6;font-size:13px}
+td input{min-width:90px}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{background:#eef4f9;border-radius:10px;padding:13px}.stat b{display:block;font-size:22px;margin-top:4px}
+.group{border:1px solid var(--line);border-radius:10px;margin:14px 0;overflow:hidden}
+.group h3{margin:0;padding:11px 14px;background:#edf3f8}
+.bar{padding:10px 12px;border-top:1px solid var(--line)}
+.bar-title{font-weight:700;margin-bottom:6px}
+.track{display:flex;height:42px;border:1px solid #aeb8c2;border-radius:6px;overflow:hidden;background:#fafafa}
+.seg{display:flex;align-items:center;justify-content:center;padding:2px 5px;font-size:11px;border-right:1px solid #fff;overflow:hidden;white-space:nowrap}
+.seg.cut{background:#cfe3f6}.seg.waste{background:#ececec;color:#59636d}
+.small{font-size:12px;color:var(--muted)}
+.joinbox{border:2px dashed #d92d20;border-radius:10px;padding:12px;margin:12px 0;background:#fff7f6}
+.joinline{display:flex;align-items:center;gap:5px;min-height:48px;margin:8px 0;flex-wrap:wrap}
+.joinseg{display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;border:1px solid #d0d5dd;border-radius:6px;background:#f2f4f7;font-size:12px;min-width:90px}
+.joinmark{color:#d92d20;font-weight:800;border-left:2px dashed #d92d20;padding-left:6px}
+.compare{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+.warn{padding:10px;border-radius:8px;background:#fff4e5;border:1px solid #f79009;margin:10px 0}
+.ok{padding:10px;border-radius:8px;background:#ecfdf3;border:1px solid #12b76a;margin:10px 0}
+.empty{padding:20px;text-align:center;color:var(--muted)}
+@media(max-width:800px){.controls{grid-template-columns:1fr 1fr}.summary{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.controls,.summary{grid-template-columns:1fr}header h1{font-size:18px}main{padding:9px}}
+@media print{
+ body{background:#fff}.no-print{display:none!important}.card{box-shadow:none;border:0;padding:0}
+ header{background:#fff;color:#000;padding:0 0 10px}
+ .group{break-inside:avoid}.track{height:34px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Hadde Mamulü Profil Kesim Optimizasyonu</h1>
+  <p>Profil bazında kesim planı • Poz takibi • Artık/Fire hesabı</p>
+</header>
+
+<main>
+<section class="card no-print">
+  <div class="controls">
+    <div><label>Hammadde / stok boyu (mm)</label><input id="stock" type="number" value="12000" min="1"></div>
+    <div><label>Kesim payı / kerf (mm)</label><input id="kerf" type="number" value="3" min="0" step="0.1"></div>
+    <div><label>Optimizasyon</label><select id="mode"><option value="waste">Minimum artık</option><option value="bars">Minimum hammadde adedi</option></select></div>
+    <div><label>Artık ekleme planı</label>
+      <select id="joins">
+        <option value="0">Ekleme yok</option>
+        <option value="1">1 ekli — 2 parça</option>
+        <option value="2">2 ekli — 3 parça</option>
+        <option value="3">3 ekli — 4 parça</option>
+      <option value="4">4 ekli (5 parça)</option></select>
+    </div>
+    <div><label>Her ek için kaynak payı (mm)</label><input id="allowance" type="number" min="0" step="1" value="0"></div>
+    <div><label>Dosya</label><input id="file" type="file" accept=".txt,.csv,.tsv"></div>
+  </div>
+  <div class="actions">
+    <button onclick="addRow()">+ Satır Ekle</button>
+    <button class="light" onclick="pasteData()">Excel / Notepad Yapıştır</button>
+    <button class="light" onclick="document.getElementById('file').click()">TXT / CSV Al</button>
+    <button class="danger" onclick="clearRows()">Temizle</button>
+    <button onclick="optimize()">KESİM PLANINI OLUŞTUR</button>
+    <button class="secondary" onclick="window.print()">Yazdır / PDF Kaydet</button>
+  </div>
+</section>
+
+<section class="card no-print">
+  <h2>Kesilecek parçalar</h2>
+  <div class="table-wrap">
+    <table id="inputTable">
+      <thead><tr><th>Malzeme / Profil</th><th>Uzunluk (mm)</th><th>Adet</th><th>Poz</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p class="small">Excel'den kopyalayıp yapıştırırken sıralama: Malzeme | Uzunluk | Adet | Poz. Örnek: IPE300 | 3250 | 5 | P1</p>
+</section>
+
+<section class="card">
+  <h2>Sonuç</h2>
+  <div id="summary" class="summary"></div>
+  <div id="plans"><div class="empty">Henüz kesim planı oluşturulmadı.</div></div>
+</section>
+</main>
+
+<script>
+const tbody=document.querySelector('#inputTable tbody');
+function addRow(v={profile:'',length:'',qty:1,poz:''}){
+ const tr=document.createElement('tr');
+ tr.innerHTML=`<td><input class="profile" value="${esc(v.profile)}"></td>
+ <td><input class="length" type="number" min="1" value="${esc(v.length)}"></td>
+ <td><input class="qty" type="number" min="1" value="${esc(v.qty||1)}"></td>
+ <td><input class="poz" value="${esc(v.poz)}"></td>
+ <td><button class="danger" onclick="this.closest('tr').remove()">Sil</button></td>`;
+ tbody.appendChild(tr);
+}
+function esc(x){return String(x??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+for(let i=0;i<3;i++) addRow();
+
+function getRows(){
+ return [...tbody.querySelectorAll('tr')].map(tr=>({
+  profile:tr.querySelector('.profile').value.trim(),
+  length:Number(tr.querySelector('.length').value),
+  qty:Number(tr.querySelector('.qty').value),
+  poz:tr.querySelector('.poz').value.trim()
+ })).filter(x=>x.profile && x.length>0 && x.qty>0);
+}
+function parseText(text){
+ const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ const out=[];
+ for(const line of lines){
+   const parts=line.includes('\\t')?line.split('\\t'):line.split(/[;,]/);
+   if(parts.length<3) continue;
+   const low=parts.map(x=>x.trim().toLowerCase());
+   if(low.some(x=>/malzeme|profil|uzunluk|adet|miktar|poz/.test(x)) && !/^\\d/.test(parts[1]?.trim())) continue;
+   const profile=parts[0].trim();
+   const length=Number(String(parts[1]).replace(',','.').replace(/[^0-9.]/g,''));
+   const qty=Number(String(parts[2]).replace(',','.').replace(/[^0-9.]/g,''))||1;
+   const poz=(parts[3]||'').trim();
+   if(profile && length>0) out.push({profile,length,qty,poz});
+ }
+ return out;
+}
+async function pasteData(){
+ const text=prompt('Excel / Notepad verisini buraya yapıştırın:');
+ if(!text)return;
+ parseText(text).forEach(addRow);
+}
+document.getElementById('file').addEventListener('change',e=>{
+ const f=e.target.files[0]; if(!f)return;
+ const r=new FileReader(); r.onload=()=>parseText(r.result).forEach(addRow); r.readAsText(f,'UTF-8');
+});
+
+function clearRows(){tbody.innerHTML='';for(let i=0;i<3;i++)addRow();document.getElementById('plans').innerHTML='<div class="empty">Henüz kesim planı oluşturulmadı.</div>';document.getElementById('summary').innerHTML='';}
+
+
+
+
+
+
+function packPieces(pieces,stock,kerf){
+ const a=pieces.slice().sort((x,y)=>y.length-x.length),bars=[];
+ a.forEach(p=>{let bi=-1,br=Infinity;bars.forEach((b,i)=>{const e=(b.parts.length?kerf:0)+p.length,r=stock-b.used-e;if(r>=-1e-9&&r<br){bi=i;br=r;}});if(bi<0)bars.push({parts:[p],used:p.length});else{const b=bars[bi];b.used+=(b.parts.length?kerf:0)+p.length;b.parts.push(p);}});
+ return bars;
+}
+function combos(a,k){const o=[];function f(s,p){if(p.length===k){o.push(p.slice());return;}for(let i=s;i<=a.length-(k-p.length);i++){p.push(a[i]);f(i+1,p);p.pop();}}f(0,[]);return o;}
+
+function findJoin(pool,target,maxJoins,allowance,minPiece){
+ // maxJoins = izin verilen EN FAZLA ek sayısı.
+ // 2 seçilirse 1 ve 2 ekli; 3 seçilirse 1,2,3 ekli çözümler birlikte değerlendirilir.
+ let best=null;
+ for(let joins=1;joins<=maxJoins;joins++){
+   const a=pool.filter(x=>x.profile===target.profile&&x.length>=minPiece);
+   const n=joins+1,need=target.length+joins*allowance;
+   if(a.length<n)continue;
+   for(const items of combos(a,n)){
+     const sum=items.reduce((s,x)=>s+x.length,0);
+     if(sum<need)continue;
+     const rem=sum-need;
+     // Önce en az artık; eşitse daha az ek.
+     if(!best || rem<best.rem-1e-9 || (Math.abs(rem-best.rem)<1e-9 && joins<best.joins))
+       best={items,sum,rem,joins};
+   }
+ }
+ return best;
+}
+function sequentialPlan(all,stock,kerf,joins,allowance,minPiece){
+ const base=packPieces(all,stock,kerf).length;
+ if(!joins)return{base,bars:packPieces(all,stock,kerf),direct:all.slice(),joinPlans:[],events:[],pool:[],remaining:[]};
+
+ const pending=all.slice().sort((a,b)=>b.length-a.length),bars=[],pool=[],joinPlans=[],events=[];
+ let wasteNo=0,produced=0,barNo=0;
+
+ while(produced<all.length && barNo<base+all.length){
+   // Before buying another bar, exhaust all possible joins from the real current pool.
+   let joined=true;
+   while(joined && pending.length){
+     joined=false;let choice=null;
+     for(const target of pending){
+       const j=findJoin(pool,target,joins,allowance,minPiece);
+       if(j&&(!choice||j.rem<choice.j.rem))choice={target,j};
+     }
+     if(choice){
+       joined=true;
+       const ids=new Set(choice.j.items.map(x=>x.id));
+       const before=pool.map(x=>({...x}));
+       for(let i=pool.length-1;i>=0;i--)if(ids.has(pool[i].id))pool.splice(i,1);
+       const ix=pending.findIndex(x=>x.uid===choice.target.uid);pending.splice(ix,1);produced++;
+       const rem=Number(choice.j.rem.toFixed(3));let newWaste=null;
+       if(rem>=minPiece){newWaste={id:`A${++wasteNo}`,no:wasteNo,profile:choice.target.profile,length:rem,source:`${wasteNo} ATIK`};pool.push(newWaste);}
+       const jp={target:choice.target,items:choice.j.items.map(x=>({...x})),remainder:rem,newWaste,before,after:pool.map(x=>({...x})),joins:choice.j.joins};
+       joinPlans.push(jp);events.push({type:"join",data:jp});
+     }
+   }
+   if(produced>=all.length||!pending.length)break;
+
+   // Buy/use one raw bar and cut as many currently pending pieces as fit.
+   barNo++;let used=0,parts=[];
+   while(true){
+     let pick=-1;
+     for(let i=0;i<pending.length;i++){
+       const e=(parts.length?kerf:0)+pending[i].length;
+       if(used+e<=stock+1e-9){pick=i;break;}
+     }
+     if(pick<0)break;
+     const q=pending.splice(pick,1)[0];
+     used+=(parts.length?kerf:0)+q.length;parts.push(q);produced++;
+   }
+   if(!parts.length)break;
+   const bar={no:barNo,parts,used};bars.push(bar);
+   const w=Number((stock-used).toFixed(3));let scrap=null;
+   if(w>=minPiece){scrap={id:`A${++wasteNo}`,no:wasteNo,profile:parts[0].profile,length:w,source:`${wasteNo} ATIK`};pool.push(scrap);}
+   events.push({type:"direct",bar,scrap});
+ }
+ return{base,bars,direct:bars.flatMap(b=>b.parts),joinPlans,events,pool,remaining:pending};
+}
+function poolTxt(p){return p.length?p.map(x=>`${x.no} ATIK ${x.length.toFixed(0)} mm`).join(' + '):'BOŞ';}
+
+function renderDirectVisuals(r,stock,kerf,root){
+ const groups={};
+ r.bars.forEach(b=>{
+   const profile=b.parts[0]?.profile||"";
+   if(!groups[profile])groups[profile]=[];
+   groups[profile].push(b);
+ });
+ Object.entries(groups).forEach(([profile,bars])=>{
+   const g=document.createElement('div');g.className='group';
+   g.innerHTML=`<h3>${esc(profile)} — DOĞRUDAN KESİM GÖRSELLERİ</h3>`;
+   bars.forEach((b,i)=>{
+     const w=Number((stock-b.used).toFixed(1));
+     const ev=r.events.find(e=>e.type==="direct"&&e.bar===b);
+     const scrap=ev?.scrap;
+     const d=document.createElement('div');d.className='bar';
+     d.innerHTML=`<div class="bar-title">${i+1}. Hammadde — ${stock} mm — Kullanılan ${b.used.toFixed(1)} mm — Artık ${w.toFixed(1)} mm${scrap?` (${scrap.no} ATIK)`:''}</div>`;
+     const t=document.createElement('div');t.className='track';
+     b.parts.forEach((q,j)=>{
+       const s=document.createElement('div');s.className='seg cut';
+       s.style.width=(q.length/stock*100)+'%';
+       s.textContent=`${q.poz||'-'} / ${q.length}`;
+       s.title=`${q.poz||'-'} — ${q.length} mm`;
+       t.appendChild(s);
+       if(j<b.parts.length-1&&kerf>0){
+         const k=document.createElement('div');k.className='seg waste';
+         k.style.width=(kerf/stock*100)+'%';k.title=`Kesim payı ${kerf} mm`;t.appendChild(k);
+       }
+     });
+     if(w>0){
+       const z=document.createElement('div');z.className='seg waste';
+       z.style.width=(w/stock*100)+'%';
+       z.textContent=scrap?`${scrap.no} ATIK / ${w.toFixed(0)}`:`ARTIK ${w.toFixed(0)}`;
+       t.appendChild(z);
+     }
+     d.appendChild(t);
+     const info=document.createElement('div');info.className='small';
+     info.innerHTML=`Kesimler: ${b.parts.map(q=>`<b>${esc(q.poz||'-')}</b> ${q.length} mm`).join(' • ')}${scrap?` • <b>${scrap.no} ATIK:</b> ${scrap.length.toFixed(0)} mm`:''}`;
+     d.appendChild(info);g.appendChild(d);
+   });
+   root.appendChild(g);
+ });
+}
+
+function renderProduction(r,stock,kerf,root){
+ const g=document.createElement('div');g.className='group';
+ g.innerHTML='<h3>ÜRETİM SIRASI — DOĞRUDAN KESİM + ZİNCİRLEME EKLEME</h3>';
+ const table=document.createElement('table');
+ table.innerHTML='<thead><tr><th>İŞLEM</th><th>HAMMADDE / KAYNAK</th><th>P1 / PARÇA</th><th>ATIK</th><th>EKLEME PLANI</th><th>ÜRETİLEN</th><th>YENİ ATIK</th></tr></thead>';
+ const tb=document.createElement('tbody');
+ r.events.forEach(ev=>{
+   const tr=document.createElement('tr');
+   if(ev.type==="direct"){
+     const b=ev.bar;
+     tr.innerHTML=`<td><b>DOĞRUDAN KESİM</b></td><td>${stock} mm / Hammadde ${b.no}</td><td>${b.parts.map(p=>`${esc(p.poz||'-')} ${p.length}`).join(' + ')}</td><td>${ev.scrap?`${ev.scrap.no} ATIK — ${ev.scrap.length.toFixed(0)} mm`:'—'}</td><td>—</td><td>${b.parts.length} adet</td><td>—</td>`;
+   }else{
+     const p=ev.data;
+     tr.innerHTML=`<td><b>EKLEME</b></td><td>${p.items.map(x=>`${x.no} ATIK`).join(' + ')}</td><td>—</td><td>Önce: ${poolTxt(p.before)}</td><td>${p.items.map(x=>`${x.length.toFixed(0)}`).join(' + ')} = ${p.items.reduce((s,x)=>s+x.length,0).toFixed(0)} mm</td><td>${esc(p.target.poz||'-')} ${p.target.length} mm</td><td>${p.newWaste?`${p.newWaste.no} ATIK — ${p.newWaste.length.toFixed(0)} mm`:'—'}</td>`;
+   }
+   tb.appendChild(tr);
+ });
+ table.appendChild(tb);g.appendChild(table);root.appendChild(g);
+}
+function drawJoinCards(r,root){
+ if(!r.joinPlans.length)return;const g=document.createElement('div');g.className='group';g.innerHTML='<h3>EKLEME DETAYLARI</h3>';
+ r.joinPlans.forEach((p,i)=>{const d=document.createElement('div');d.className='joinbox';d.innerHTML=`<b>${i+1}. Ekleme (${p.joins} ekli) → ${esc(p.target.poz||'-')} ${p.target.length} mm</b><div class="joinline">${p.items.map((x,j)=>`<div class="joinseg">${x.no} ATIK<br>${x.length.toFixed(0)} mm</div>${j<p.items.length-1?'<div class="joinmark">EK YERİ</div>':''}`).join('')}</div><div class="small">${p.items.map(x=>x.length.toFixed(0)).join(' + ')} − ${p.target.length} = <b>${p.remainder.toFixed(0)} mm</b>${p.newWaste?` → ${p.newWaste.no} ATIK`:''}</div><div class="small">Sonraki havuz: ${poolTxt(p.after)}</div>`;g.appendChild(d);});root.appendChild(g);
+}
+function optimize(){
+ const stock=+document.getElementById('stock').value,kerf=+document.getElementById('kerf').value||0,joins=+document.getElementById('joins').value||0,allowance=+document.getElementById('allowance').value||0,minPiece=100;
+ const rows=getRows();if(!rows.length)return alert('En az bir geçerli parça girin.');
+ let all=[],uid=0;for(const x of rows){if(x.length>stock)return alert('İstenen boy hammadde boyundan uzun.');for(let i=0;i<x.qty;i++)all.push({uid:++uid,profile:x.profile,length:x.length,poz:x.poz});}
+ let candidates=[];
+ for(let cap=0;cap<=joins;cap++){
+   const rr=sequentialPlan(all,stock,kerf,cap,allowance,minPiece);
+   rr.cap=cap;candidates.push(rr);
+ }
+ // Valid complete plans first: least raw bars, then fewer joins, then smaller allowed cap.
+ const complete=candidates.filter(x=>x.remaining.length===0);
+ const source=complete.length?complete:candidates;
+ source.sort((a,b)=>a.bars.length-b.bars.length || a.joinPlans.length-b.joinPlans.length || a.cap-b.cap);
+ const r=source[0],root=document.getElementById('plans');root.innerHTML='';
+ const done=r.direct.length+r.joinPlans.length,saved=r.base-r.bars.length,actualMax=r.joinPlans.length?Math.max(...r.joinPlans.map(x=>x.joins||0)):0;
+ const c=document.createElement('div');c.className='compare';c.innerHTML=`<div class="stat">Eksiz hammadde<b>${r.base}</b></div><div class="stat">Kullanılan hammadde<b>${r.bars.length}</b></div><div class="stat">Doğrudan parça<b>${r.direct.length}</b></div><div class="stat">Ekli parça<b>${r.joinPlans.length}</b></div>`;root.appendChild(c);
+ const m=document.createElement('div');m.className=r.remaining.length?'warn':'ok';m.innerHTML=r.remaining.length?`Üretim <b>${done}/${all.length}</b>. Kalan ${r.remaining.length} parça için yeni hammadde/uygun artık gerekiyor.`:`Sipariş tamamlandı: <b>${done}/${all.length}</b>. Seçilen üst sınır: <b>${joins} ek</b>; çözümde kullanılan en yüksek ek: <b>${actualMax}</b>. Eksiz plana göre hammadde farkı: <b>${saved}</b>.`;root.appendChild(m);
+ renderDirectVisuals(r,stock,kerf,root);renderProduction(r,stock,kerf,root);drawJoinCards(r,root);
+ const z=document.createElement('div');z.className='group';z.innerHTML=`<h3>SON ARTIK HAVUZU</h3><div class="small">${poolTxt(r.pool)}</div>`;root.appendChild(z);
+ document.getElementById('summary').innerHTML=`<div class="stat">İstenen<b>${all.length}</b></div><div class="stat">Tamamlanan<b>${done}</b></div><div class="stat">Doğrudan<b>${r.direct.length}</b></div><div class="stat">Ekleme<b>${r.joinPlans.length}</b></div>`;
+}
+
+</script>
+</body>
+</html>

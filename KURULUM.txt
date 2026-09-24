@@ -1,0 +1,20 @@
+MÜHENDİSLİK PROGRAMLARI V1
+==========================
+Tek ana menü:
+1) Çelik Hangar
+2) Profil Kesim + Ekleme
+3) Plaka Nesting
+
+KURULUM / YAYIN
+- ZIP'i açın.
+- GitHub Pages repository köküne tüm dosya ve klasörleri aynı yapıyla yükleyin.
+- GitHub Pages HTTPS adresini bir kez internet varken açın.
+- Windows/Android: tarayıcının uygulama yükleme / ana ekrana ekleme seçeneğini kullanın.
+- iPhone/iPad: Safari > Paylaş > Ana Ekrana Ekle.
+- Mac: Safari/Chrome üzerinden siteyi Dock/uygulama olarak ekleyebilirsiniz.
+- Sonraki açılışlarda servis çalışanı önbelleği sayesinde temel dosyalar offline kullanılabilir.
+
+ÖNEMLİ
+- file:// ile çift tıklama PWA offline kurulum mekanizmasını çalıştırmaz; PWA için HTTPS gerekir.
+- Çalışan Hangar ve Profil Kesim kaynakları değiştirilmeden alt modüllere kopyalandı.
+- Plaka Nesting V10/V11 kaynak dosyası mevcut çalışma alanında bulunursa otomatik eklenmiştir; bulunmadıysa apps/plaka-nesting/index.html içindeki uyarıyı V11 MASTER yedeğindeki UYGULAMA/index.html ile değiştirin.

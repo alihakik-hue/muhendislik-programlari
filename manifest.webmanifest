@@ -1,0 +1,10 @@
+{
+  "name": "Mühendislik Programları V1",
+  "short_name": "Mühendislik",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f5f7",
+  "theme_color": "#173b5b",
+  "icons": []
+}
