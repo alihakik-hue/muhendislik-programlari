@@ -1,0 +1,28 @@
+PROFİL KESİM + EKLEME OPTİMİZASYONU — MASTER YEDEK V9
+=======================================================
+
+ANA DOSYA:
+PROFIL_KESIM_EKLEME_V9_ORIJINAL.html
+
+Bu dosya yüklediğiniz sürümün DEĞİŞTİRİLMEMİŞ kopyasıdır.
+
+Bu sürümde görülen temel özellikler:
+- Hammadde/stok boyu ve kerf
+- Minimum artık veya minimum hammadde yaklaşımı
+- 0–4 ek seçimi
+- Excel/Notepad yapıştırma ve TXT/CSV alma
+- Poz takibi
+- Doğrudan kesim görselleri
+- Artık havuzu
+- Zincirleme ekleme planı ve EK YERİ gösterimi
+- Yazdır/PDF
+
+JavaScript syntax kontrolü: OK
+SHA-256:
+2ac6755347c23ed2e5980b592244f21478be5f2f3101818b0654717e7b4ead86
+
+KURTARMA:
+- GitHub veya sohbet kaybolsa bile bu HTML dosyası tek başına saklanabilir.
+- Bilgisayarda çift tıklayarak tarayıcıda açılabilir.
+- Geliştirmeye bu MASTER dosyanın kopyası üzerinden devam edin.
+- MASTER ZIP'i PC + USB/harici disk + bulut olmak üzere en az 3 yerde saklayın.
