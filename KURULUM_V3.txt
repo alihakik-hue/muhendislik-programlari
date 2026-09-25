@@ -1,0 +1,5 @@
+MÜHENDİSLİK PROGRAMLARI V3
+
+V2 korunarak V3 oluşturuldu. Çelik Hangar modülü yeni yüklenen v20 stok boyu sürümüyle değiştirildi. Diğer üç modül korunmuştur.
+
+GitHub: MUHENDISLIK_PROGRAMLARI_V3 klasörünün İÇİNDEKİ dosyaları mevcut muhendislik-programlari repository köküne yükleyin ve aynı isimli dosyaları değiştirin.
