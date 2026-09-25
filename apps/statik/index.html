@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Çelik Hangar — Portal / Makas Eleman Seçimli V7</title>
+<style>
+:root{--b:#173b5b;--g:#1f7a43;--r:#a12d24;--l:#d9e1e7}
+*{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;background:#f4f7f9;color:#17232d}
+.wrap{max-width:1050px;margin:auto;padding:18px}.card{background:white;border:1px solid var(--l);border-radius:12px;padding:18px;margin-bottom:14px}
+h1{margin:0 0 5px;color:var(--b)}h2{font-size:18px;color:var(--b)}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+label{font-size:12px;font-weight:700}.f{display:flex;flex-direction:column;gap:5px}input,select,button{padding:10px;border:1px solid #bfcbd3;border-radius:7px;font-size:14px}
+button{background:var(--b);color:#fff;font-weight:800;cursor:pointer}.result{font-size:24px;font-weight:900;padding:14px;border-radius:9px;background:#eef2f5}
+.ok{background:#eaf7ee;color:var(--g)}.bad{background:#fff0ee;color:var(--r)}
+table{width:100%;border-collapse:collapse;margin-top:12px}th,td{padding:9px;border-bottom:1px solid #e1e7eb;text-align:left;font-size:13px}
+.note{font-size:12px;line-height:1.45;color:#586773}.pill{font-weight:800}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body><div class="wrap">
+<div class="card"><h1>Çelik Hangar — Portal / Makas Eleman Seçimli V7</h1>
+<div class="note">Basit ön boyutlandırma: ölçü ve yükleri gir → HESAPLA → kolon ve çatı kirişi otomatik seçilsin.</div></div>
+
+<div class="card"><h2>1. Geometri ve Yükler</h2><div class="grid">
+<div class="f"><label>Portal açıklığı (m)</label><input id="W" type="number" value="20" step=".1"></div>
+<div class="f"><label>Ayak yüksekliği (m)</label><input id="H" type="number" value="6" step=".1"></div>
+<div class="f"><label>Aks aralığı (m)</label><input id="B" type="number" value="6" step=".1"></div>
+<div class="f"><label>Çatı eğimi (%)</label><input id="S" type="number" value="10" step=".5"></div>
+<div class="f"><label>Çatı taşıyıcı sistemi</label><select id="roofSystem" onchange="toggleTruss()"><option value="portal" selected>Portal kiriş</option><option value="truss">Makas</option></select></div>
+<div class="f"><label>Makas yüksekliği (m)</label><input id="trussDepth" type="number" value="1.20" step=".1" disabled></div>
+<div class="f"><label>Makas panel sayısı</label><input id="trussPanels" type="number" value="8" step="2" min="4" disabled></div>
+<div class="f"><label>Çatı sabit yükü G (kN/m²)</label><input id="G" type="number" value=".35" step=".05"></div>
+<div class="f"><label>Kar yükü S (kN/m²)</label><input id="Snow" type="number" value=".75" step=".05"></div>
+<div class="f"><label>Rüzgâr basıncı (kN/m²)</label><input id="Wind" type="number" value=".60" step=".05"></div>
+<div class="f"><label>Çelik</label><select id="grade"><option>S235</option><option>S275</option><option selected>S355</option></select></div>
+<div class="f"><label>İzin verilen kullanım</label><select id="limit"><option value=".85">85%</option><option value=".90" selected>90%</option><option value=".95">95%</option></select></div>
+<div class="f"><label>Kesit seçim modu</label><select id="sectionMode" onchange="toggleManual()"><option value="auto" selected>Tam otomatik</option><option value="manual">Kullanıcı belirlesin</option></select></div>
+<div class="f"><label>Kolon profil ailesi</label><select id="famCol" onchange="fillOne('famCol','manualCol')" disabled></select></div>
+<div class="f"><label>Kolon kesiti</label><select id="manualCol" disabled></select></div>
+<div class="f"><label>Çatı kirişi / makas ailesi</label><select id="famBeam" onchange="fillOne('famBeam','manualBeam')" disabled></select></div>
+<div class="f"><label>Çatı kirişi / makas kesiti</label><select id="manualBeam" disabled></select></div>
+<div class="f trussCtl"><label>Makas üst başlık ailesi</label><select id="famTop" onchange="fillOne('famTop','manualTop')" disabled></select></div>
+<div class="f trussCtl"><label>Makas üst başlık kesiti</label><select id="manualTop" disabled></select></div>
+<div class="f trussCtl"><label>Makas alt başlık ailesi</label><select id="famBottom" onchange="fillOne('famBottom','manualBottom')" disabled></select></div>
+<div class="f trussCtl"><label>Makas alt başlık kesiti</label><select id="manualBottom" disabled></select></div>
+<div class="f trussCtl"><label>Makas diyagonal/dikme ailesi</label><select id="famWeb" onchange="fillOne('famWeb','manualWeb')" disabled></select></div>
+<div class="f trussCtl"><label>Makas diyagonal/dikme kesiti</label><select id="manualWeb" disabled></select></div>
+<div class="f"><label>Çatı aşık ailesi</label><select id="famRoof" onchange="fillOne('famRoof','manualRoof')" disabled></select></div>
+<div class="f"><label>Çatı aşık kesiti</label><select id="manualRoof" disabled></select></div>
+<div class="f"><label>Yan cephe aşık ailesi</label><select id="famSide" onchange="fillOne('famSide','manualSide')" disabled></select></div>
+<div class="f"><label>Yan cephe aşık kesiti</label><select id="manualSide" disabled></select></div>
+<div class="f"><label>Kalkan cephe aşık ailesi</label><select id="famGable" onchange="fillOne('famGable','manualGable')" disabled></select></div>
+<div class="f"><label>Kalkan cephe aşık kesiti</label><select id="manualGable" disabled></select></div>
+<div class="f"><label>Çapraz ailesi</label><select id="famBrace" onchange="fillOne('famBrace','manualBrace')" disabled></select></div>
+<div class="f"><label>Çapraz kesiti</label><select id="manualBrace" disabled></select></div>
+<div class="f"><label>Ara kat ailesi</label><select id="famMezz" onchange="fillOne('famMezz','manualMezz')" disabled></select></div>
+<div class="f"><label>Ara kat kesiti</label><select id="manualMezz" disabled></select></div>
+<div class="f"><label>Vinç kirişi ailesi</label><select id="famCrane" onchange="fillOne('famCrane','manualCrane')" disabled></select></div>
+<div class="f"><label>Vinç kirişi kesiti</label><select id="manualCrane" disabled></select></div>
+
+<div class="f"><label>Hangar uzunluğu (m)</label><input id="Len" type="number" value="30" step=".1"></div>
+<div class="f"><label>Çatı aşık aralığı (m)</label><input id="roofPurlinSp" type="number" value="1" step=".1"></div>
+<div class="f"><label>Yan cephe aşık aralığı (m)</label><input id="sideGirtSp" type="number" value="1.5" step=".1"></div>
+<div class="f"><label>Kalkan aşık aralığı (m)</label><input id="gableGirtSp" type="number" value="1.5" step=".1"></div>
+<div class="f"><label>Ara kat</label><select id="mezzOn"><option value="0" selected>Yok</option><option value="1">Var</option></select></div>
+<div class="f"><label>Ara kat alanı (m²)</label><input id="mezzArea" type="number" value="100" step="1"></div>
+<div class="f"><label>Ara kat hareketli yükü (kN/m²)</label><input id="mezzQ" type="number" value="5" step=".5"></div>
+<div class="f"><label>Vinç</label><select id="craneOn"><option value="0" selected>Yok</option><option value="1">Var</option></select></div>
+<div class="f"><label>Vinç kapasitesi (ton)</label><input id="craneCap" type="number" value="10" step=".5"></div>
+<div class="f"><label>Maks. teker yükü (kN)</label><input id="wheelMax" type="number" value="0" step="1" placeholder="Üretici verisi"></div>
+<div class="f"><label>Çatı kaplama</label><select id="roofClad"><option>Trapez sac 0.60 mm</option><option>Sandviç panel</option></select></div>
+<div class="f"><label>Yan cephe kaplama</label><select id="sideClad"><option>Trapez sac 0.50 mm</option><option>Sandviç panel</option></select></div>
+<div class="f"><label>Kalkan kaplama</label><select id="gableClad"><option>Trapez sac 0.50 mm</option><option>Sandviç panel</option></select></div>
+<div class="f"><label>Kaplama fire (%)</label><input id="cladWaste" type="number" value="5" step="1"></div>
+</div><div style="margin-top:14px"><button onclick="design()">HESAPLA — OTOMATİK MALZEME TAYİNİ</button></div></div>
+
+<div class="card"><h2>2. Sonuç</h2><div id="overall" class="result">Hesap bekleniyor.</div>
+<table><thead><tr><th>Eleman</th><th>Otomatik kesit</th><th>Kullanım</th><th>Kritik kontrol</th><th>Durum</th></tr></thead><tbody id="body"></tbody></table>
+<div id="why" class="note" style="margin-top:12px"></div>
+<h2 style="margin-top:22px">3. Otomatik Malzeme Listesi ve Tonaj</h2>
+<table><thead><tr><th>Malzeme grubu</th><th>Otomatik seçim</th><th>Metraj / adet</th><th>Birim kg/m</th><th>Tonaj</th><th>Açıklama</th></tr></thead><tbody id="matBody"></tbody></table>
+<div id="totalTon" class="result" style="margin-top:12px">TOPLAM TONAJ: —</div>
+<div id="tonExplain" class="note" style="margin-top:10px"></div>
+
+<h2 style="margin-top:22px">4. Yaklaşık Bağlantı Plakaları</h2>
+<table><thead><tr><th>Plaka grubu</th><th>Yaklaşık ağırlık</th><th>Açıklama</th></tr></thead><tbody id="plateBody"></tbody></table>
+<div id="plateTotal" class="result" style="margin-top:12px">BAĞLANTI PLAKALARI: —</div>
+
+<h2 style="margin-top:22px">5. Kaplama Metrajı</h2>
+<table><thead><tr><th>Bölge</th><th>Net alan</th><th>Fireli alan</th><th>Malzeme</th></tr></thead><tbody id="cladBody"></tbody></table>
+<div id="cladTotal" class="result" style="margin-top:12px">TOPLAM KAPLAMA: —</div>
+
+<h2 style="margin-top:22px">6. Hangar Görseli</h2>
+<div id="hangarVisual" style="background:#f7fafc;border:1px solid #d9e1e7;border-radius:10px;padding:10px"></div>
+</div>
+
+<div class="card"><h2>Hesap kapsamı</h2><div class="note">
+Bu ilk bağımsız sürüm çift eğimli tek katlı portal için hızlı <b>ön kesit tayini</b> yapar. Kolonlarda eksenel kuvvet + moment, çatı kirişlerinde moment + kesme ve ayrıca portal ötelenmesi/sehim göstergeleri değerlendirilir. Uygun aday bulunamazsa program “OLUMLU” vermek yerine açıkça “uygun kesit bulunamadı” der.<br><br>
+<b>Mühendislik sınırı:</b> Bu sürüm nihai uygulama/statik proje hesabı değildir. Kesit özellikleri ve iç kuvvetler ön boyutlandırma yaklaşımıdır; tam burkulma, LTB, ikinci mertebe/P-Delta, deprem, birleşim ve yönetmelik kontrolleri sonraki sürümlerde gerçek kesit veritabanı ile tamamlanmalıdır.
+</div></div>
+</div>
+<script>
+const DB={
+IPE:[["IPE 160",15.8,160],["IPE 180",18.8,180],["IPE 200",22.4,200],["IPE 220",26.2,220],["IPE 240",30.7,240],["IPE 270",36.1,270],["IPE 300",42.2,300],["IPE 330",49.1,330],["IPE 360",57.1,360],["IPE 400",66.3,400],["IPE 450",77.6,450],["IPE 500",90.7,500],["IPE 550",106,550],["IPE 600",122,600]],
+HEA:[["HEA 100",16.7,96],["HEA 120",19.9,114],["HEA 140",24.7,133],["HEA 160",30.4,152],["HEA 180",35.5,171],["HEA 200",42.3,190],["HEA 220",50.5,210],["HEA 240",60.3,230],["HEA 260",68.2,250],["HEA 280",76.4,270],["HEA 300",88.3,290],["HEA 320",97.6,310],["HEA 340",105,330],["HEA 360",112,350],["HEA 400",125,390],["HEA 450",140,440],["HEA 500",155,490],["HEA 550",166,540],["HEA 600",178,590]],
+HEB:[["HEB 100",20.4,100],["HEB 120",26.7,120],["HEB 140",33.7,140],["HEB 160",42.6,160],["HEB 180",51.2,180],["HEB 200",61.3,200],["HEB 220",71.5,220],["HEB 240",83.2,240],["HEB 260",93,260],["HEB 280",103,280],["HEB 300",117,300],["HEB 320",127,320],["HEB 340",134,340],["HEB 360",142,360],["HEB 400",155,400],["HEB 450",171,450],["HEB 500",187,500],["HEB 550",199,550],["HEB 600",212,600]],
+UPE:[["UPE 80",7.9,80],["UPE 100",9.8,100],["UPE 120",12.1,120],["UPE 140",14.5,140],["UPE 160",17.0,160],["UPE 180",19.7,180],["UPE 200",22.8,200],["UPE 220",26.6,220],["UPE 240",30.2,240],["UPE 270",35.8,270],["UPE 300",44.4,300],["UPE 330",53.2,330],["UPE 360",61.2,360],["UPE 400",72.2,400]],
+UPN:[["UPN 80",8.6,80],["UPN 100",10.6,100],["UPN 120",13.4,120],["UPN 140",16.0,140],["UPN 160",18.8,160],["UPN 180",22.0,180],["UPN 200",25.3,200],["UPN 220",29.4,220],["UPN 240",33.2,240],["UPN 260",37.9,260],["UPN 280",41.8,280],["UPN 300",46.2,300]],
+KUTU:[["Kutu 60x40x3",4.39,60],["Kutu 80x40x3",5.33,80],["Kutu 100x50x3",6.76,100],["Kutu 120x60x4",10.7,120],["Kutu 140x80x4",13.8,140],["Kutu 160x80x5",18.1,160],["Kutu 200x100x5",22.8,200],["Kutu 250x150x6",35.8,250],["Kutu 300x200x8",60.3,300]],
+L:[["L 40x40x4",2.42,40],["L 50x50x5",3.77,50],["L 60x60x6",5.42,60],["L 70x70x7",7.38,70],["L 80x80x8",9.63,80],["L 100x100x10",15.0,100]]
+};
+function n(id){return +document.getElementById(id).value||0}
+function props(x,fam){let A=x[1]/7850*1e6,h=x[2],c=fam==="IPE"?.82:fam==="HEA"?.92:fam==="HEB"?1.08:fam==="UPE"||fam==="UPN"?.65:fam==="KUTU"?.72:.55;return{name:x[0],A,Wel:c*A*h/4,Av:.42*A,h,kg:x[1]}}
+function chooseAuto(fam,Nk,Mk,Vk,fy,lim,serviceCheck){
+ let last=null;
+ for(const x of DB[fam]){
+   let p=props(x,fam),un=Nk*1000/(p.A*fy),um=Mk*1e6/(p.Wel*fy),uv=Vk*1000/(p.Av*fy/Math.sqrt(3));
+   let u=Math.max(un+um,uv), strengthOK=u<=lim;
+   let svc=serviceCheck?serviceCheck(p):{ok:true,value:0,limit:0,label:""};
+   last={p,u,un,um,uv,svc,strengthOK,ok:strengthOK&&svc.ok};
+   if(last.ok)return last;
+ }
+ return {...last,ok:false}
+}
+function pct(x){return (x*100).toFixed(1)+"%"}
+const FAMILIES=["IPE","HEA","HEB","UPE","UPN","KUTU","L"];
+function fillOne(fid,sid){
+ let f=document.getElementById(fid).value||"IPE",s=document.getElementById(sid);
+ s.innerHTML=(DB[f]||[]).map(x=>`<option>${x[0]}</option>`).join("");
+}
+function fillManualSections(){
+ ["famCol","famBeam","famTop","famBottom","famWeb","famRoof","famSide","famGable","famBrace","famMezz","famCrane"].forEach(id=>{
+   let e=document.getElementById(id);e.innerHTML=FAMILIES.map(f=>`<option>${f}</option>`).join("");
+ });
+ document.getElementById("famCol").value="HEB";
+ document.getElementById("famBeam").value="IPE";
+ document.getElementById("famTop").value="KUTU";
+ document.getElementById("famBottom").value="KUTU";
+ document.getElementById("famWeb").value="KUTU";
+ document.getElementById("famRoof").value="KUTU";
+ document.getElementById("famSide").value="KUTU";
+ document.getElementById("famGable").value="KUTU";
+ document.getElementById("famBrace").value="L";
+ document.getElementById("famMezz").value="IPE";
+ document.getElementById("famCrane").value="HEB";
+ [["famCol","manualCol"],["famBeam","manualBeam"],["famTop","manualTop"],["famBottom","manualBottom"],["famWeb","manualWeb"],["famRoof","manualRoof"],["famSide","manualSide"],["famGable","manualGable"],["famBrace","manualBrace"],["famMezz","manualMezz"],["famCrane","manualCrane"]].forEach(x=>fillOne(x[0],x[1]));
+}
+function toggleTruss(){
+ let tr=document.getElementById("roofSystem").value==="truss";
+ document.getElementById("trussDepth").disabled=!tr;
+ document.getElementById("trussPanels").disabled=!tr;
+ toggleManual();
+}
+function toggleManual(){
+ let manual=document.getElementById("sectionMode").value==="manual";
+ let tr=document.getElementById("roofSystem").value==="truss";
+ ["famCol","manualCol","famRoof","manualRoof","famSide","manualSide","famGable","manualGable","famBrace","manualBrace","famMezz","manualMezz","famCrane","manualCrane"].forEach(id=>document.getElementById(id).disabled=!manual);
+ ["famBeam","manualBeam"].forEach(id=>document.getElementById(id).disabled=!(manual&&!tr));
+ ["famTop","manualTop","famBottom","manualBottom","famWeb","manualWeb"].forEach(id=>document.getElementById(id).disabled=!(manual&&tr));
+}
+function evaluateFixed(fam,name,Nk,Mk,Vk,fy,lim,serviceCheck){
+ let x=DB[fam].find(z=>z[0]===name) || DB[fam][0],p=props(x,fam);
+ let un=Nk*1000/(p.A*fy),um=Mk*1e6/(p.Wel*fy),uv=Vk*1000/(p.Av*fy/Math.sqrt(3)),u=Math.max(un+um,uv);
+ let svc=serviceCheck?serviceCheck(p):{ok:true,value:0,limit:0,label:""};
+ return {p,u,un,um,uv,svc,strengthOK:u<=lim,ok:u<=lim&&svc.ok};
+}
+function design(){
+ let W=n("W"),H=n("H"),B=n("B"),s=n("S")/100,G=n("G"),S=n("Snow"),wind=n("Wind"),lim=n("limit");
+ let fy={S235:235,S275:275,S355:355}[document.getElementById("grade").value]||355;
+ if(W<=0||H<=0||B<=0){alert("Geometri değerlerini kontrol edin.");return}
+ let L=Math.hypot(W/2,W/2*s),q=(G+S)*B;
+ // Conservative preliminary portal force envelopes, intentionally transparent.
+ let Mbeam=q*L*L/8, Vbeam=q*L/2;
+ let Vwind=wind*B*H, Mcol=Vwind*H/2 + Mbeam*.55;
+ let Ncol=q*L + (G*B*H*.12);
+ let Vcol=Vwind;
+ // V4: automatic selection includes strength AND serviceability in the same loop.
+ let E=210000, beamDefLimit=L*1000/250, colDriftLimit=H*1000/250;
+ let manual=document.getElementById("sectionMode").value==="manual";
+ let beamCheck=function(p){
+   let I=p.Wel*p.h/2,d=5*q*Math.pow(L*1000,4)/(384*E*I);
+   return {ok:d<=beamDefLimit,value:d,limit:beamDefLimit,label:"çatı sehimi"};
+ };
+ let colCheck=function(p){
+   let I=p.Wel*p.h/2,d=(Vwind*1000)*Math.pow(H*1000,3)/(3*E*I);
+   return {ok:d<=colDriftLimit,value:d,limit:colDriftLimit,label:"portal ötelenmesi"};
+ };
+ let beam=manual?evaluateFixed(document.getElementById("famBeam").value,document.getElementById("manualBeam").value,0,Mbeam,Vbeam,fy,lim,beamCheck):chooseAuto("IPE",0,Mbeam,Vbeam,fy,lim,beamCheck);
+ let col=manual?evaluateFixed(document.getElementById("famCol").value,document.getElementById("manualCol").value,Ncol,Mcol,Vcol,fy,lim,colCheck):chooseAuto("HEB",Ncol,Mcol,Vcol,fy,lim,colCheck);
+ let def=beam.svc.value, drift=col.svc.value;
+ let defOK=beam.svc.ok, driftOK=col.svc.ok;
+ let ok=col.ok&&beam.ok;
+ // In truss mode the current global portal check remains a preliminary envelope;
+ // material list is split into chord/web members below.
+ let rows=[
+ ["Kolon",col.p.name,pct(col.u),!col.strengthOK?"N+M / kesme":(!driftOK?"Yatay ötelenme":"Tüm ön kontroller"),col.ok],
+ [document.getElementById("roofSystem").value==="truss"?"Makas global ön kontrol":"Çatı kirişi",document.getElementById("roofSystem").value==="truss"?"Üst/alt/diyagonal ayrı tayin":beam.p.name,pct(beam.u),!beam.strengthOK?"Global dayanım göstergesi":(!defOK?"Düşey sehim":"Tüm ön kontroller"),beam.ok]
+ ];
+ document.getElementById("body").innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td><b>${r[1]}</b></td><td>${r[2]}</td><td>${r[3]}</td><td class="pill">${r[4]?"OLUMLU ✓":"OLUMSUZ ✕"}</td></tr>`).join("");
+ let reasons=[];
+ if(!col.ok) reasons.push(`${manual?"Kullanıcının seçtiği":"Otomatik taramadaki"} ${col.p.name} kolon kontrolü sağlanamadı`+(col.strengthOK?` — ötelenme ${drift.toFixed(1)} mm > ${colDriftLimit.toFixed(1)} mm`:` — dayanım kullanımı ${pct(col.u)}`));
+ if(!beam.ok) reasons.push(`${manual?"Kullanıcının seçtiği":"Otomatik taramadaki"} ${beam.p.name} çatı kirişi kontrolü sağlanamadı`+(beam.strengthOK?` — sehim ${def.toFixed(1)} mm > ${beamDefLimit.toFixed(1)} mm`:` — dayanım kullanımı ${pct(beam.u)}`));
+ let o=document.getElementById("overall");o.className="result "+(ok?"ok":"bad");o.innerHTML=ok?"ÖN STATİK SONUÇ: OLUMLU ✓":"ÖN STATİK SONUÇ: OLUMSUZ ✕";
+ document.getElementById("why").innerHTML=(ok?`${manual?"Kullanıcı kesit kontrolü":"Otomatik tayin"} tamamlandı: dayanım + sehim/ötelenme kontrol edildi. Kolon <b>${col.p.name}</b>, çatı kirişi <b>${beam.p.name}</b>. Kritik dayanım kullanımı: ${pct(Math.max(col.u,beam.u))}.`:`<b>Olumsuzluk nedeni:</b> ${reasons.join(" · ")}`)+`<br>Kontrol göstergeleri: çatı sehimi ${def.toFixed(1)} mm; portal ötelenmesi ${drift.toFixed(1)} mm.`;
+
+ // --- Otomatik ikincil eleman + tonaj ön metrajı ---
+ let Len=n("Len"),frames=Math.floor(Len/B)+1, bays=Math.max(1,frames-1);
+ let roofSp=Math.max(.5,n("roofPurlinSp")),sideSp=Math.max(.5,n("sideGirtSp")),gabSp=Math.max(.5,n("gableGirtSp"));
+ let roofLines=Math.ceil(L/roofSp)*2, sideLines=Math.ceil(H/sideSp)*2, gableLines=Math.ceil(H/gabSp)*2+Math.ceil((W/2*s)/gabSp)*2;
+ // Simple automatic secondary selections by tributary load/span. Conservative discrete catalogue for preliminary tonnage.
+ function secAuto(kind,load,span){
+   let z=load*span*span;
+   if(kind==="roof") return z<18?["Kutu 60x40x3",4.39]:z<32?["Kutu 80x40x3",5.33]:z<50?["Kutu 100x50x3",6.76]:["UPE 120",12.1];
+   if(kind==="wall") return z<12?["Kutu 60x40x2.5",3.72]:z<25?["Kutu 80x40x3",5.33]:["UPE 100",10.6];
+   return ["L 50x50x5",3.77];
+ }
+ let rp=secAuto("roof",(G+S)*roofSp,B), sg=secAuto("wall",wind*sideSp,B), gg=secAuto("wall",wind*gabSp,B);
+ let brace=secAuto("brace",0,0);
+ if(manual){
+   function pick(fid,sid){let f=document.getElementById(fid).value,nm=document.getElementById(sid).value,x=(DB[f]||[]).find(z=>z[0]===nm);return x?[x[0],x[1]]:["—",0]}
+   rp=pick("famRoof","manualRoof"); sg=pick("famSide","manualSide"); gg=pick("famGable","manualGable"); brace=pick("famBrace","manualBrace");
+ }
+ let colLen=2*H*frames, beamLen=2*L*frames;
+ let roofLen=roofLines*Len, sideLen=sideLines*Len, gableLen=gableLines*W;
+ let braceBays=Math.ceil(bays/2), braceLen=braceBays*2*Math.hypot(B,W/2);
+ let isTruss=document.getElementById("roofSystem").value==="truss",td=Math.max(.4,n("trussDepth")),pan=Math.max(4,Math.round(n("trussPanels")||8));
+ let topLen=2*L*frames, bottomLen=W*frames;
+ let panelW=W/pan, diagOne=Math.hypot(panelW,td), webLen=((pan+1)*td+pan*diagOne)*frames;
+ function autoTruss(kind){
+   let span=W,load=(G+S)*B,score=load*span*span/(8*Math.max(td,.4));
+   if(kind==="top") return score<220?["Kutu 100x50x3",6.76]:score<420?["Kutu 120x60x4",10.7]:["HEA 160",30.4];
+   if(kind==="bottom") return score<220?["Kutu 80x40x3",5.33]:score<420?["Kutu 100x50x3",6.76]:["HEA 140",24.7];
+   return score<220?["Kutu 60x40x3",4.39]:score<420?["Kutu 80x40x3",5.33]:["L 80x80x8",9.63];
+ }
+ let mt=autoTruss("top"),mb=autoTruss("bottom"),mw=autoTruss("web");
+ if(manual&&isTruss){mt=pick("famTop","manualTop");mb=pick("famBottom","manualBottom");mw=pick("famWeb","manualWeb");}
+ let items=[
+   ["Ana kolon",col.p.name,colLen,col.p.kg,"2 kolon × "+frames+" portal"]
+ ];
+ if(isTruss){
+   items.push(["Makas üst başlık",mt[0],topLen,mt[1],"2 eğimli üst başlık × "+frames+" makas"]);
+   items.push(["Makas alt başlık",mb[0],bottomLen,mb[1],"Alt başlık × "+frames+" makas"]);
+   items.push(["Makas diyagonal/dikme",mw[0],webLen,mw[1],pan+" panel · diyagonal + dikmeler"]);
+ } else {
+   items.push(["Çatı ana kirişi",beam.p.name,beamLen,beam.p.kg,"2 mertek × "+frames+" portal"]);
+ }
+ items.push(
+
+   ["Çatı aşıkları",rp[0],roofLen,rp[1],roofLines+" hat × "+Len.toFixed(1)+" m"],
+   ["Yan cephe aşıkları",sg[0],sideLen,sg[1],sideLines+" hat × "+Len.toFixed(1)+" m"],
+   ["Kalkan cephe aşıkları",gg[0],gableLen,gg[1],gableLines+" hat × "+W.toFixed(1)+" m"],
+   ["Çatı çaprazları",brace[0],braceLen,brace[1],braceBays+" çaprazlı aks aralığı"]
+ );
+ if(document.getElementById("mezzOn").value==="1"){
+   let area=n("mezzArea"),mq=n("mezzQ"),kgm2=mq<=3?18:mq<=5?24:32;
+   if(manual){
+     let f=document.getElementById("famMezz").value,nm=document.getElementById("manualMezz").value,x=DB[f].find(z=>z[0]===nm);
+     let approxLen=area/3.0; items.push(["Ara kat ana/ara kirişleri",nm,approxLen,x[1],"Kullanıcı kesiti · yaklaşık 3 m tributary düzeni"]);
+   } else items.push(["Ara kat çeliği","Otomatik kiriş/kolon grubu",area,kgm2,"Ön metraj: "+kgm2+" kg/m² × "+area.toFixed(0)+" m²"]);
+ }
+ if(document.getElementById("craneOn").value==="1"){
+   let cap=n("craneCap"),wm=n("wheelMax"),kgpm=cap<=5?45:cap<=10?65:cap<=20?90:120,crName="Otomatik vinç kirişi";
+   if(manual){let f=document.getElementById("famCrane").value,nm=document.getElementById("manualCrane").value,x=DB[f].find(z=>z[0]===nm);kgpm=x[1];crName=nm}
+   items.push(["Vinç yolu kirişi",crName,2*Len,kgpm,(wm>0?"Maks. teker "+wm.toFixed(0)+" kN":"Teker yükü girilmedi — ön metraj")]);
+   items.push(["Vinç konsol/takviye","Plaka + profil",frames*2,cap<=10?18:28,"Portal başına 2 konsol için ön ağırlık"]);
+ }
+ let total=0,tbody="";
+ items.forEach(function(it){
+   let ton=it[2]*it[3]/1000;total+=ton;
+   tbody+=`<tr><td>${it[0]}</td><td><b>${it[1]}</b></td><td>${it[2].toFixed(1)} ${it[0].includes("Ara kat")?"m²":it[0].includes("konsol")?"adet":"m"}</td><td>${it[3].toFixed(2)}</td><td><b>${ton.toFixed(3)} t</b></td><td>${it[4]}</td></tr>`;
+ });
+ document.getElementById("matBody").innerHTML=tbody;
+ document.getElementById("totalTon").innerHTML=`TOPLAM ÇELİK TONAJI: ${total.toFixed(3)} ton`;
+ document.getElementById("tonExplain").innerHTML=`Portal sayısı: <b>${frames}</b> · Aks adedi: <b>${bays}</b> · Hangar uzunluğu: <b>${Len.toFixed(1)} m</b>. Profil tonajı; ana taşıyıcılar + ikincil elemanlar`+(document.getElementById("mezzOn").value==="1"?" + ara kat":"")+(document.getElementById("craneOn").value==="1"?" + vinç yolu/konsollar":"")+` toplamıdır.`;
+
+ // Yaklaşık bağlantı plakası tonajı — profil tonajından ayrı gösterilir.
+ let mainTon=(colLen*col.p.kg+(isTruss?(topLen*mt[1]+bottomLen*mb[1]+webLen*mw[1]):beamLen*beam.p.kg))/1000;
+ let secTon=(roofLen*rp[1]+sideLen*sg[1]+gableLen*gg[1]+braceLen*brace[1])/1000;
+ let pBase=mainTon*.035, pKnee=mainTon*.028, pRidge=mainTon*.012, pBrace=secTon*.018;
+ let pMezz=document.getElementById("mezzOn").value==="1"? total*.012:0;
+ let pCrane=document.getElementById("craneOn").value==="1"? total*.015:0;
+ let pTot=pBase+pKnee+pRidge+pBrace+pMezz+pCrane;
+ let plates=[
+  ["Kolon taban plakaları",pBase,"Taban levhası + rijitleştirici için yaklaşık pay"],
+  ["Kolon-kiriş / diz birleşimleri",pKnee,"Uç levha, haunch ve rijitleştiriciler için yaklaşık pay"],
+  ["Mahya birleşim plakaları",pRidge,"Mahya ek levhaları için yaklaşık pay"],
+  ["Çapraz bağlantı/gusset plakaları",pBrace,"Çatı çapraz bağlantıları için yaklaşık pay"]
+ ];
+ if(pMezz) plates.push(["Ara kat bağlantı plakaları",pMezz,"Ara kat kiriş/kolon bağlantıları için yaklaşık pay"]);
+ if(pCrane) plates.push(["Vinç bağlantı/takviye plakaları",pCrane,"Konsol ve vinç yolu bağlantıları için yaklaşık pay"]);
+ document.getElementById("plateBody").innerHTML=plates.map(x=>`<tr><td>${x[0]}</td><td><b>${x[1].toFixed(3)} t</b></td><td>${x[2]}</td></tr>`).join("");
+ document.getElementById("plateTotal").innerHTML=`YAKLAŞIK BAĞLANTI PLAKASI: ${pTot.toFixed(3)} ton · PROFİL + PLAKA: ${(total+pTot).toFixed(3)} ton`;
+
+ // Kaplama
+ let waste=1+n("cladWaste")/100;
+ let roofArea=2*L*Len, sideArea=2*H*Len, gableArea=2*(W*H + .5*W*(W/2*s));
+ let clad=[
+  ["Çatı",roofArea,roofArea*waste,document.getElementById("roofClad").value],
+  ["Yan cepheler",sideArea,sideArea*waste,document.getElementById("sideClad").value],
+  ["Kalkan cepheler",gableArea,gableArea*waste,document.getElementById("gableClad").value]
+ ];
+ let netClad=roofArea+sideArea+gableArea, grossClad=netClad*waste;
+ document.getElementById("cladBody").innerHTML=clad.map(x=>`<tr><td>${x[0]}</td><td>${x[1].toFixed(1)} m²</td><td><b>${x[2].toFixed(1)} m²</b></td><td>${x[3]}</td></tr>`).join("");
+ document.getElementById("cladTotal").innerHTML=`TOPLAM KAPLAMA: ${grossClad.toFixed(1)} m² (net ${netClad.toFixed(1)} m² + %${n("cladWaste").toFixed(0)} fire)`;
+
+ // Basit ölçekli perspektif SVG
+ let svg=`<svg viewBox="0 0 900 380" width="100%" role="img" aria-label="Hangar perspektif görünüşü">
+ <defs><linearGradient id="rg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dce8f0"/><stop offset="1" stop-color="#f8fbfd"/></linearGradient></defs>
+ <rect width="900" height="380" fill="url(#rg)"/>
+ <g stroke="#173b5b" stroke-width="4" fill="none">
+ <path d="M150 285 L150 145 L300 85 L450 145 L450 285 Z"/>
+ <path d="M450 285 L760 230 L760 115 L610 62 L300 85"/>
+ <path d="M450 145 L760 115 M300 85 L610 62"/>
+ </g>
+ <g stroke="#607d8b" stroke-width="1.5" opacity=".7">`;
+ for(let i=1;i<6;i++){let dx=i*52;svg+=`<path d="M${450+dx} ${285-i*9} L${450+dx} ${145-i*5}"/>`;}
+ svg+=`</g><g font-family="Arial" fill="#173b5b" font-size="18" font-weight="700">
+ <text x="135" y="325">Açıklık ${W.toFixed(1)} m</text><text x="570" y="300">Uzunluk ${Len.toFixed(1)} m</text><text x="40" y="205">Ayak ${H.toFixed(1)} m</text>
+ </g></svg>`;
+ document.getElementById("hangarVisual").innerHTML=svg;
+}
+fillManualSections();toggleTruss();
+</script></body></html>

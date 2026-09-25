@@ -1,0 +1,11 @@
+MÜHENDİSLİK PROGRAMLARI V2
+V1 üzerine Statik / Otomatik Malzeme Tayini V7 eklendi.
+
+GitHub güncellemesi:
+Repository köküne V2 içeriğini yükleyin.
+index.html, manifest.webmanifest ve sw.js dosyalarının yeni sürümleri eskilerin yerini almalıdır.
+apps/statik/index.html yeni modüldür.
+apps/hangar, apps/profil-kesim ve apps/plaka-nesting korunmuştur.
+
+Kurulu cihazlarda internet açıkken uygulamayı kapatıp yeniden açın/yenileyin.
+V2 önbelleği V1 önbelleğinden farklı isim kullanır.
