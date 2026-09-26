@@ -3,3 +3,6 @@ MÜHENDİSLİK PROGRAMLARI V3
 V2 korunarak V3 oluşturuldu. Çelik Hangar modülü yeni yüklenen v20 stok boyu sürümüyle değiştirildi. Diğer üç modül korunmuştur.
 
 GitHub: MUHENDISLIK_PROGRAMLARI_V3 klasörünün İÇİNDEKİ dosyaları mevcut muhendislik-programlari repository köküne yükleyin ve aynı isimli dosyaları değiştirin.
+
+
+2026-09-26 EK MODÜL: Kutu Profil Çatı Metraj V9, apps/cati-metraj/index.html. Offline cache güncellendi.
