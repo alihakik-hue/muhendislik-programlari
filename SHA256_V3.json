@@ -1,11 +1,11 @@
 {
   "KURULUM_V3.txt": "0c423bbb6db2c832a0524470177becb2bb40fb11a5d6069ad099405792e37ea0",
-  "apps/cati-metraj/index.html": "6099f3531f5d2aad1dc93a1e7a93ce75064fcd5002d445a886e73ca847f5c13e",
+  "apps/cati-metraj/index.html": "6cee97011b96f99e86e429787371e92a6b4617c2449d339ab8417c4ec5019854",
   "apps/hangar/index.html": "f4149b7ff0164946d83a40f2db3830c5147d77049e50692adb9ed5400c18c003",
   "apps/plaka-nesting/index.html": "69687bb2df9842976d24b48c9eecd868df9921dc0944198179e6b39efbc6f5c7",
   "apps/profil-kesim/index.html": "2ac6755347c23ed2e5980b592244f21478be5f2f3101818b0654717e7b4ead86",
   "apps/statik/index.html": "9ea8791756b51cc4f21277b66fe23a0c2205cb3a541bd52b862cd748efef4e10",
-  "index.html": "c84146e559c8277f22bf20d3007b13c2aa714663acf31fdcc614d4d4b3a0d028",
+  "index.html": "65f1b9b1c181fc8cafdec30bd0e3ef4b64aa834b632cc0a6d008e0c868ce1f70",
   "manifest.webmanifest": "ec317fe9c71edd27c817e3eec97ed24bfccaadc215dfbb2cc4da78c410932ea6",
-  "sw.js": "d1483cb218b098d9fa6e826399dbf2410d0aebd8ad19f28b5a019cbf6f4f1487"
+  "sw.js": "0057d607346fcfcd850e27c343ba60ea12fd5df3a70396525dc5c6666327c7a3"
 }

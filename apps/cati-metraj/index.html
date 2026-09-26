@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kutu Profil Çatı Metraj V9</title>
+<title>Kutu Profil Çatı Metraj V10.2</title>
 <style>
 :root{--bg:#0d1420;--panel:#172231;--line:#30445c;--txt:#edf4fb;--muted:#9eb1c5;--acc:#57b7ff}
 *{box-sizing:border-box} body{margin:0;font:14px Arial,sans-serif;background:var(--bg);color:var(--txt)}
@@ -21,7 +21,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;borde
 </style>
 </head>
 <body>
-<header><h1>Kutu Profil Çatı Metraj V9</h1><small>Ayaklı / ayaksız • makaslı / tek profil • tek eğim / çift eğim / kırma-4 aklam</small></header>
+<header><h1>Kutu Profil Çatı Metraj V10.2</h1><small>Ayaklı / ayaksız • makaslı / tek profil • tek eğim / çift eğim / kırma-4 aklam</small></header>
 <main>
 <section class="panel">
 <div class="grid">
@@ -39,10 +39,11 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;borde
 <div id="ringProfWrap"><label>Üst bağlama kirişi</label><select id="ringProf"></select></div>
 <div id="beamProfWrap"><label>Ana tekil profil</label><select id="beamProf"></select></div>
 <div id="chordProfWrap"><label>Makas başlık profili</label><select id="chordProf"></select></div>
-<div id="webProfWrap"><label>Makas diyagonal profili</label><select id="webProf"></select></div>
+<div id="webProfWrap"><label>Makas dikme profili (Kutu)</label><select id="webProf"></select></div>
+<div id="diagProfWrap"><label>Makas diyagonal profili (Kutu / Köşebent)</label><select id="diagProf"></select></div>
 <div><label>Aşık profili</label><select id="purlinProf"></select></div>
 <div><label>Aşık max. aralık (m)</label><input id="purlinSpace" type="number" value="1" min=".3" step=".1"></div>
-<div><label>Çapraz profili</label><select id="braceProf"></select></div>
+<div><label>Çapraz profili (Kutu / Köşebent)</label><select id="braceProf"></select></div>
 <div id="hipOptions" class="full">
   <div class="rowtitle">4 Aklam / Kırma Çatı Makas Düzeni</div>
   <div class="grid">
@@ -80,13 +81,37 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;borde
 </main>
 <script>
 const profiles={
-"40x40x2":2.39,"40x60x2":3.02,"50x50x2":3.02,"60x60x2":3.65,"60x80x3":6.31,
-"80x80x3":7.25,"80x100x3":8.20,"100x100x3":9.14,"100x100x4":11.9,"100x150x4":15.1,
-"120x120x4":14.4,"120x120x5":17.7,"150x150x5":22.4
+"20x20x1.5":0.87,"25x25x1.5":1.10,"30x30x1.5":1.34,"30x30x2":1.76,
+"40x20x1.5":1.34,"40x20x2":1.76,"40x40x1.5":1.81,"40x40x2":2.39,"40x40x3":3.48,"40x60x2":3.02,"40x60x3":4.43,
+"50x30x2":2.39,"50x40x2":2.70,"50x50x2":3.02,"50x50x3":4.43,
+"60x30x2":2.70,"60x40x2":3.02,"60x40x3":4.43,"60x60x2":3.65,"60x60x3":5.37,"60x60x4":6.95,
+"70x70x3":6.31,"70x70x4":8.21,"80x40x2":3.65,"80x40x3":5.37,"80x40x4":6.95,
+"60x80x3":6.31,"60x80x4":8.21,"80x60x3":6.31,"80x60x4":8.21,"80x80x2":4.90,"80x80x3":7.25,"80x80x4":9.46,"80x80x5":11.60,
+"100x40x2":4.27,"100x40x3":6.31,"100x50x3":6.78,"100x50x4":8.84,
+"100x60x3":7.25,"100x60x4":9.46,"100x80x3":8.20,"100x80x4":10.70,
+"100x100x3":9.14,"100x100x4":11.90,"100x100x5":14.60,"100x100x6":17.20,
+"120x60x3":8.20,"120x60x4":10.70,"120x80x4":11.90,"120x80x5":14.60,
+"120x120x4":14.40,"120x120x5":17.70,"120x120x6":20.90,
+"140x80x4":13.20,"140x80x5":16.20,"150x50x3":9.14,"150x50x4":11.90,
+"100x150x4":15.10,"100x150x5":18.50,"150x100x4":15.10,"150x100x5":18.50,"150x150x4":18.20,"150x150x5":22.40,"150x150x6":26.60,
+"160x80x4":14.40,"160x80x5":17.70,"160x100x4":15.70,"160x100x5":19.30,
+"180x100x4":17.00,"180x100x5":20.90,"200x100x4":18.20,"200x100x5":22.40,"200x100x6":26.60,
+"200x120x5":24.00,"200x120x6":28.50,"200x150x5":26.40,"200x150x6":31.30,
+"200x200x5":30.30,"200x200x6":36.00
 };
-const ids=["legProf","ringProf","beamProf","chordProf","webProf","purlinProf","braceProf"];
-ids.forEach(id=>{let s=document.getElementById(id);Object.keys(profiles).forEach(p=>s.add(new Option(p,p)))});
-legProf.value="100x100x4";ringProf.value="100x100x4";beamProf.value="100x150x4";chordProf.value="60x80x3";webProf.value="40x40x2";purlinProf.value="40x60x2";braceProf.value="40x40x2";
+const angles={
+"L25x25x3":1.12,"L30x30x3":1.36,"L35x35x3":1.60,"L40x40x3":1.84,"L40x40x4":2.42,
+"L45x45x4":2.74,"L50x50x4":3.06,"L50x50x5":3.77,"L60x60x5":4.57,"L60x60x6":5.42,
+"L65x65x5":4.99,"L65x65x6":5.91,"L70x70x6":6.38,"L75x75x6":6.85,"L80x80x6":7.34,
+"L80x80x8":9.63,"L90x90x7":9.61,"L100x100x8":12.20
+};
+const ids=["legProf","ringProf","beamProf","chordProf","webProf","diagProf","purlinProf","braceProf"];
+ids.forEach(id=>{let sel=document.getElementById(id);Object.keys(profiles).forEach(p=>sel.add(new Option("Kutu "+p,p)))});
+Object.keys(angles).forEach(p=>{
+ diagProf.add(new Option("Köşebent "+p,p));
+ braceProf.add(new Option("Köşebent "+p,p));
+});
+legProf.value="100x100x4";ringProf.value="100x100x4";beamProf.value="100x150x4";chordProf.value="60x80x3";webProf.value="40x40x2";diagProf.value="L40x40x4";purlinProf.value="40x60x2";braceProf.value="L40x40x4";
 const $=id=>document.getElementById(id), val=id=>+$ (id).value;
 function add(rows,name,prof,m){if(m<=0)return;let r=rows.find(x=>x.name==name&&x.prof==prof);if(r)r.m+=m;else rows.push({name,prof,m})}
 function roofData(){
@@ -112,7 +137,8 @@ function calculate(){
    if(roof.value==="hip") top=2*Math.hypot(d.W/2,d.rise);
    add(rows,"Makas üst başlık",chordProf.value,frames*top);
    add(rows,"Makas alt başlık",chordProf.value,frames*d.W);
-   add(rows,"Makas dikme/diyagonal",webProf.value,frames*d.W*1.65);
+   add(rows,"Makas dikmeleri",webProf.value,frames*d.W*1.65*.40);
+   add(rows,"Makas diyagonalleri",diagProf.value,frames*d.W*1.65*.60);
  }
  let purlinLines=Math.ceil(d.slopedW/val("purlinSpace"))+1;
  if(roof.value==="hip") purlinLines=Math.ceil(d.W*Math.sqrt(1+d.s*d.s)/val("purlinSpace"))+2;
@@ -125,7 +151,8 @@ function calculate(){
      if(system.value==="truss"){
        add(rows,"Y yönü orta boyuna makas üst başlık",chordProf.value,d.L);
        add(rows,"Y yönü orta boyuna makas alt başlık",chordProf.value,d.L);
-       add(rows,"Y yönü orta boyuna makas dikme/diyagonal",webProf.value,d.L*1.25);
+       add(rows,"Y yönü orta boyuna makas dikmeleri",webProf.value,d.L*1.25*.40);
+       add(rows,"Y yönü orta boyuna makas diyagonalleri",diagProf.value,d.L*1.25*.60);
      }else add(rows,"Y yönü orta boyuna tekil profil",beamProf.value,d.L);
    }
    let optionalPlan=Math.min(d.W/2,d.L/2);
@@ -135,7 +162,8 @@ function calculate(){
      if(system.value==="truss"){
        add(rows,"90° opsiyonel makas üst başlık",chordProf.value,ec*optionalSpan);
        add(rows,"90° opsiyonel makas alt başlık",chordProf.value,ec*optionalPlan);
-       add(rows,"90° opsiyonel makas dikme/diyagonal",webProf.value,ec*optionalSpan*.75);
+       add(rows,"90° opsiyonel makas dikmeleri",webProf.value,ec*optionalSpan*.75*.40);
+       add(rows,"90° opsiyonel makas diyagonalleri",diagProf.value,ec*optionalSpan*.75*.60);
      }else add(rows,"90° opsiyonel tekil taşıyıcı",beamProf.value,ec*optionalSpan);
    }
    let hipPlan=Math.hypot(d.W/2,Math.min(d.W,d.L)/2);
@@ -145,12 +173,14 @@ function calculate(){
      // 4 adet köşe makası: üst başlık + yaklaşık alt bağ + gövde/diyagonal.
      add(rows,"Köşe makası üst başlık (4 adet)",chordProf.value,4*hipLen);
      add(rows,"Köşe makası alt başlık (4 adet)",chordProf.value,4*hipPlan);
-     add(rows,"Köşe makası dikme/diyagonal",webProf.value,4*hipLen*0.75);
+     add(rows,"Köşe makası dikmeleri",webProf.value,4*hipLen*0.75*.40);
+     add(rows,"Köşe makası diyagonalleri",diagProf.value,4*hipLen*0.75*.60);
      // Kırpılmış/ara makasların yaklaşık metrajı; aks aralığına bağlıdır.
      let jackCount=Math.max(0,Math.ceil((2*Math.min(d.W/2,d.L/2))/bayActual)-1)*4;
      let avgJack=Math.hypot(d.W/4,d.rise/2);
      add(rows,"Kırpılmış / ara makas üst başlık",chordProf.value,jackCount*avgJack);
-     add(rows,"Kırpılmış / ara makas gövde",webProf.value,jackCount*avgJack*0.65);
+     add(rows,"Kırpılmış / ara makas dikmeleri",webProf.value,jackCount*avgJack*0.65*.40);
+     add(rows,"Kırpılmış / ara makas diyagonalleri",diagProf.value,jackCount*avgJack*0.65*.60);
      if(ridge>0) add(rows,"Mahya taşıyıcı profili",chordProf.value,ridge);
    }else{
      add(rows,"Köşe tekil profili (4 adet)",beamProf.value,4*hipLen);
@@ -162,7 +192,7 @@ function calculate(){
  }
  let totalM=0,totalKg=0,totalStock=0;
  tbody.innerHTML="";
- rows.forEach(r=>{let kgpm=profiles[r.prof],kg=r.m*kgpm,stock=Math.ceil(r.m/6);totalM+=r.m;totalKg+=kg;totalStock+=stock;
+ rows.forEach(r=>{let kgpm=(profiles[r.prof]??angles[r.prof]??0),kg=r.m*kgpm,stock=Math.ceil(r.m/6);totalM+=r.m;totalKg+=kg;totalStock+=stock;
  tbody.innerHTML+=`<tr><td>${r.name}<br><small>${r.prof}</small></td><td>${r.m.toFixed(1)} m</td><td>${kgpm.toFixed(2)}</td><td>${kg.toFixed(0)}</td><td>${stock}</td></tr>`});
  area.textContent=d.area.toFixed(1)+" m²";meters.textContent=totalM.toFixed(1)+" m";weight.textContent=(totalKg/1000).toFixed(2)+" ton";stocks.textContent=totalStock+" boy";
  let coverArea=coverOn.value==="yes"?d.area:0;
@@ -286,7 +316,7 @@ function ui(){
  hipOptions.classList.toggle("hidden",roof.value!=="hip");
  hipExtraCountWrap.classList.toggle("hidden",roof.value!=="hip" || hipExtra.value!=="yes");
  legHeightWrap.classList.toggle("hidden",!on);legProfWrap.classList.toggle("hidden",!on);ringProfWrap.classList.toggle("hidden",!on);
- beamProfWrap.classList.toggle("hidden",tr);chordProfWrap.classList.toggle("hidden",!tr);webProfWrap.classList.toggle("hidden",!tr);calculate()
+ beamProfWrap.classList.toggle("hidden",tr);chordProfWrap.classList.toggle("hidden",!tr);webProfWrap.classList.toggle("hidden",!tr);diagProfWrap.classList.toggle("hidden",!tr);calculate()
 }
 document.querySelectorAll("input,select").forEach(e=>e.addEventListener("input",ui));ui();
 </script>
