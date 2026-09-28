@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kutu Profil Çatı Metraj V10.2</title>
+<title>Kutu Profil Çatı Metraj V10.6</title>
 <style>
 :root{--bg:#0d1420;--panel:#172231;--line:#30445c;--txt:#edf4fb;--muted:#9eb1c5;--acc:#57b7ff}
 *{box-sizing:border-box} body{margin:0;font:14px Arial,sans-serif;background:var(--bg);color:var(--txt)}
@@ -17,11 +17,28 @@ canvas{width:100%;height:520px;background:linear-gradient(#0b111a,#121c29);borde
 .stat b{display:block;font-size:18px;margin-top:4px}
 table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;border-bottom:1px solid #2d4055;text-align:right}th:first-child,td:first-child{text-align:left}
 .note{margin-top:10px;color:#f0c879;font-size:12px}.rowtitle{margin:14px 0 8px;font-weight:bold;color:#dcecff}
-@media(max-width:900px){main{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}canvas{height:400px}}
+.printbar{display:flex;gap:10px;justify-content:flex-end;margin:0 14px 14px}.printbtn{border:0;border-radius:9px;padding:11px 18px;background:#57b7ff;color:#06111d;font-weight:700;cursor:pointer}.printbtn:hover{filter:brightness(1.08)}
+@media(max-width:900px){main{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}canvas{height:400px}.printbar{justify-content:stretch}.printbtn{width:100%}}
+@media print{
+ @page{size:A4 portrait;margin:10mm}
+ :root{--bg:#fff;--panel:#fff;--line:#999;--txt:#000;--muted:#333}
+ body{background:#fff;color:#000;font-size:10pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ header{background:#fff;color:#000;padding:0 0 8mm;border-bottom:1px solid #777}
+ header h1{font-size:17pt}.printbar{display:none!important}
+ main{display:block;padding:0}.panel{background:#fff;color:#000;border:0;padding:0;border-radius:0}
+ main>section:first-child{margin-bottom:7mm}main>section:first-child .grid{grid-template-columns:repeat(4,1fr);gap:4mm}
+ label{color:#333;font-size:8pt}input,select{background:#fff;color:#000;border:1px solid #aaa;padding:4px;font-size:9pt;appearance:auto}
+ .hidden{display:none!important}.note{color:#555;margin:4mm 0}.rowtitle{color:#000;margin:5mm 0 2mm}
+ canvas{width:100%!important;height:auto!important;max-height:115mm;background:#fff;border:1px solid #aaa;page-break-inside:avoid}
+ .stats{grid-template-columns:repeat(3,1fr);gap:2mm;margin:4mm 0;page-break-inside:avoid}.stat{background:#fff;border:1px solid #aaa;padding:5px;color:#000}.stat b{font-size:11pt}
+ table{font-size:8pt;page-break-inside:auto}thead{display:table-header-group}tr{page-break-inside:avoid}th,td{border-bottom:1px solid #aaa;padding:4px;color:#000}
+ section{page-break-inside:auto}
+}
 </style>
 </head>
 <body>
-<header><h1>Kutu Profil Çatı Metraj V10.2</h1><small>Ayaklı / ayaksız • makaslı / tek profil • tek eğim / çift eğim / kırma-4 aklam</small></header>
+<header><h1>Kutu Profil Çatı Metraj V10.6</h1><small>Ayaklı / ayaksız • makaslı / tek profil • tek eğim / çift eğim / kırma-4 aklam</small></header>
+<div class="printbar"><button class="printbtn" id="printPdf" type="button">PDF Yazdır / Kaydet</button></div>
 <main>
 <section class="panel">
 <div class="grid">
@@ -60,8 +77,13 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;borde
 <div><label>Oluk tipi</label><select id="gutterType"><option>Galvaniz Sac Oluk</option><option>PVC Oluk</option><option>Boyalı Sac Oluk</option><option>Diğer</option></select></div>
 <div><label>Oluk birim fiyatı (TL/m)</label><input id="gutterPrice" type="number" value="0" min="0" step="1"></div>
 
+<div class="rowtitle">Yaklaşık Maliyet Birim Fiyatları</div>
+<div><label>Çelik imalat (TL/m²)</label><input id="steelFabPrice" type="number" value="0" min="0" step="1"></div>
+<div><label>Çelik montaj (TL/m²)</label><input id="steelMountPrice" type="number" value="0" min="0" step="1"></div>
+<div><label>Kaplama uygulama (TL/m²)</label><input id="coverInstallPrice" type="number" value="0" min="0" step="1"></div>
+
 </div>
-<div class="note">Bu V1 geometrik metraj içindir; statik yeterlilik hesabı değildir.</div>
+<div class="note">Bu V10.6 geometrik metraj ve kullanıcı birim fiyatlarına göre yaklaşık maliyet içindir; statik yeterlilik veya kesin teklif değildir.</div>
 </section>
 <section>
 <div class="panel">
@@ -73,6 +95,10 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;borde
 <div class="stat"><small>6 m stok boy</small><b id="stocks">-</b></div>
 <div class="stat"><small>Çatı kaplama</small><b id="coverOut">-</b></div>
 <div class="stat"><small>Kenar oluğu</small><b id="gutterOut">-</b></div>
+<div class="stat"><small>Çelik imalat</small><b id="steelFabOut">-</b></div>
+<div class="stat"><small>Çelik montaj</small><b id="steelMountOut">-</b></div>
+<div class="stat"><small>Kaplama</small><b id="coverCostOut">-</b></div>
+<div class="stat"><small>Yaklaşık toplam maliyet</small><b id="grandCostOut">-</b></div>
 </div>
 <div class="rowtitle">Çelik Profil Malzeme Listesi</div>
 <div style="overflow:auto"><table><thead><tr><th>Eleman / Profil</th><th>Metraj</th><th>kg/m</th><th>Kg</th><th>6 m Boy</th></tr></thead><tbody id="tbody"></tbody></table></div>
@@ -126,12 +152,17 @@ function roofData(){
 function calculate(){
  const d=roofData(), rows=[], nBays=Math.max(1,Math.ceil(d.L/val("bay"))), frames=nBays+1, bayActual=d.L/nBays;
  if(legs.value==="yes"){
-   add(rows,"Ayak",legProf.value,frames*2*val("H"));
-   add(rows,"Üst çevre/bağlama kirişi",ringProf.value,2*(d.W+d.L));
+   // Tek eğimde düşük taraf H, yüksek taraf H + rise.
+   const legTotal = roof.value==="single" ? frames*(2*val("H")+d.rise) : frames*2*val("H");
+   add(rows,"Ayak",legProf.value,legTotal);
+   // Tek eğim + tek profil sisteminde ayrı üst çevre/bağlama kirişi yok.
+   if(!(roof.value==="single" && system.value==="beam")){
+     add(rows,"Üst çevre/bağlama kirişi",ringProf.value,2*(d.W+d.L));
+   }
  }
  if(system.value==="beam"){
    let one=roof.value==="single"?Math.hypot(d.W,d.rise):roof.value==="gable"?2*Math.hypot(d.W/2,d.rise):2*Math.hypot(d.W/2,d.rise);
-   add(rows,"Ana çatı profili",beamProf.value,frames*one);
+   add(rows,roof.value==="single"?"Eğim yönü ana tekil profil":"Ana çatı profili",beamProf.value,frames*one);
  } else {
    let top=roof.value==="single"?Math.hypot(d.W,d.rise):2*Math.hypot(d.W/2,d.rise);
    if(roof.value==="hip") top=2*Math.hypot(d.W/2,d.rise);
@@ -203,6 +234,21 @@ function calculate(){
  }
  coverOut.textContent=coverOn.value==="yes"?coverArea.toFixed(1)+" m² • "+coverType.value+(val("coverPrice")>0?" • "+(coverArea*val("coverPrice")).toLocaleString("tr-TR",{maximumFractionDigits:0})+" TL":""):"Yok";
  gutterOut.textContent=gutterOn.value==="yes"?gutterM.toFixed(1)+" m • "+gutterType.value+(val("gutterPrice")>0?" • "+(gutterM*val("gutterPrice")).toLocaleString("tr-TR",{maximumFractionDigits:0})+" TL":""):"Yok";
+
+ // Kullanıcının belirlediği TL/m² değerleriyle yaklaşık maliyet.
+ const costArea=d.area;
+ const steelFabCost=costArea*val("steelFabPrice");
+ const steelMountCost=costArea*val("steelMountPrice");
+ const coverMaterialCost=coverOn.value==="yes"?coverArea*val("coverPrice"):0;
+ const coverApplicationCost=coverOn.value==="yes"?coverArea*val("coverInstallPrice"):0;
+ const coverTotalCost=coverMaterialCost+coverApplicationCost;
+ const gutterCost=gutterOn.value==="yes"?gutterM*val("gutterPrice"):0;
+ const grandCost=steelFabCost+steelMountCost+coverTotalCost+gutterCost;
+ const tl=n=>n.toLocaleString("tr-TR",{maximumFractionDigits:0})+" TL";
+ steelFabOut.textContent=tl(steelFabCost);
+ steelMountOut.textContent=tl(steelMountCost);
+ coverCostOut.textContent=coverOn.value==="yes"?tl(coverTotalCost):"Yok";
+ grandCostOut.textContent=tl(grandCost);
  draw(d,frames);
 }
 function draw(d,frames){
@@ -213,10 +259,18 @@ function draw(d,frames){
  // base/legs/ring
  let ys=Array.from({length:frames},(_,i)=>i*d.L/(frames-1||1));
  if(legs.value==="yes"){
-   ys.forEach(y=>{line([0,y,0],[0,y,baseZ],"#d8b0ff",5);line([d.W,y,0],[d.W,y,baseZ],"#d8b0ff",5)});
+   ys.forEach(y=>{
+     const zLeft=baseZ;
+     const zRight=roof.value==="single" ? baseZ+d.rise : baseZ;
+     line([0,y,0],[0,y,zLeft],"#d8b0ff",5);
+     line([d.W,y,0],[d.W,y,zRight],"#d8b0ff",5);
+   });
  }
- line([0,0,baseZ],[0,d.L,baseZ],"#d8b0ff",4);line([d.W,0,baseZ],[d.W,d.L,baseZ],"#d8b0ff",4);
- line([0,0,baseZ],[d.W,0,baseZ],"#d8b0ff",4);line([0,d.L,baseZ],[d.W,d.L,baseZ],"#d8b0ff",4);
+ // Tek eğim + tek profil: üstte ayrıca çevre/bağlama kirişi çizilmez.
+ if(!(roof.value==="single" && system.value==="beam")){
+   line([0,0,baseZ],[0,d.L,baseZ],"#d8b0ff",4);line([d.W,0,baseZ],[d.W,d.L,baseZ],"#d8b0ff",4);
+   line([0,0,baseZ],[d.W,0,baseZ],"#d8b0ff",4);line([0,d.L,baseZ],[d.W,d.L,baseZ],"#d8b0ff",4);
+ }
  function zroof(x,y){
    if(roof.value==="single")return baseZ+d.s*x;
    if(roof.value==="gable")return baseZ+d.rise-d.s*Math.abs(x-d.W/2);
@@ -315,9 +369,11 @@ function ui(){
  riseWrap.classList.toggle("hidden",slopeMode.value!=="rise");
  hipOptions.classList.toggle("hidden",roof.value!=="hip");
  hipExtraCountWrap.classList.toggle("hidden",roof.value!=="hip" || hipExtra.value!=="yes");
- legHeightWrap.classList.toggle("hidden",!on);legProfWrap.classList.toggle("hidden",!on);ringProfWrap.classList.toggle("hidden",!on);
+ legHeightWrap.classList.toggle("hidden",!on);legProfWrap.classList.toggle("hidden",!on);ringProfWrap.classList.toggle("hidden",!on || (roof.value==="single" && system.value==="beam"));
  beamProfWrap.classList.toggle("hidden",tr);chordProfWrap.classList.toggle("hidden",!tr);webProfWrap.classList.toggle("hidden",!tr);diagProfWrap.classList.toggle("hidden",!tr);calculate()
 }
-document.querySelectorAll("input,select").forEach(e=>e.addEventListener("input",ui));ui();
+document.querySelectorAll("input,select").forEach(e=>e.addEventListener("input",ui));
+document.getElementById("printPdf").addEventListener("click",()=>{ calculate(); setTimeout(()=>window.print(),80); });
+ui();
 </script>
 </body></html>

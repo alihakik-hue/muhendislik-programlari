@@ -24,14 +24,14 @@ table{width:100%;border-collapse:collapse;min-width:720px}
 th,td{border-bottom:1px solid var(--line);padding:7px;text-align:left}
 th{background:#eef2f6;font-size:13px}
 td input{min-width:90px}
-.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:14px 0}.summary .stat{text-align:center;padding:20px 14px;border:1px solid #b8d9f3;box-shadow:0 2px 7px #0002}.summary .stat:nth-child(2){background:#fff9e8;border-color:#ffd66b;color:#d96b00}.summary .stat:nth-child(3){background:#ecfff5;border-color:#98e7bd;color:#008a46}.summary .stat b{font-size:34px}
 .stat{background:#eef4f9;border-radius:10px;padding:13px}.stat b{display:block;font-size:22px;margin-top:4px}
 .group{border:1px solid var(--line);border-radius:10px;margin:14px 0;overflow:hidden}
 .group h3{margin:0;padding:11px 14px;background:#edf3f8}
 .bar{padding:10px 12px;border-top:1px solid var(--line)}
 .bar-title{font-weight:700;margin-bottom:6px}
 .track{display:flex;height:42px;border:1px solid #aeb8c2;border-radius:6px;overflow:hidden;background:#fafafa}
-.seg{display:flex;align-items:center;justify-content:center;padding:2px 5px;font-size:11px;border-right:1px solid #fff;overflow:hidden;white-space:nowrap}
+.seg{display:flex;align-items:center;justify-content:center;padding:2px 5px;font-size:11px;border-right:2px solid #5f6b76;overflow:hidden;white-space:nowrap}
 .seg.cut{background:#cfe3f6}.seg.waste{background:#ececec;color:#59636d}
 .small{font-size:12px;color:var(--muted)}
 .joinbox{border:2px dashed #d92d20;border-radius:10px;padding:12px;margin:12px 0;background:#fff7f6}
@@ -79,9 +79,14 @@ td input{min-width:90px}
     <button class="light" onclick="pasteData()">Excel / Notepad Yapıştır</button>
     <button class="light" onclick="document.getElementById('file').click()">TXT / CSV Al</button>
     <button class="danger" onclick="clearRows()">Temizle</button>
+    <label style="display:flex;align-items:center;gap:6px;margin:0 4px;font-weight:700;cursor:pointer">
+      <input id="showProduction" type="checkbox" onchange="refreshProductionVisibility()" style="width:auto;accent-color:#145ea8">
+      Üretim Sırasını Göster
+    </label>
     <button onclick="optimize()">KESİM PLANINI OLUŞTUR</button>
     <button class="secondary" onclick="window.print()">Yazdır / PDF Kaydet</button>
   </div>
+  <p class="small">“Üretim Sırasını Göster” işaretliyse üretim sırası ekranda ve PDF çıktısında görünür; işaretli değilse ikisinde de gizlenir.</p>
 </section>
 
 <section class="card no-print">
@@ -279,7 +284,8 @@ function renderDirectVisuals(r,stock,kerf,root){
 }
 
 function renderProduction(r,stock,kerf,root){
- const g=document.createElement('div');g.className='group';
+ const g=document.createElement('div');g.className='group production-order';
+ g.style.display=document.getElementById('showProduction')?.checked?'block':'none';
  g.innerHTML='<h3>ÜRETİM SIRASI — DOĞRUDAN KESİM + ZİNCİRLEME EKLEME</h3>';
  const table=document.createElement('table');
  table.innerHTML='<thead><tr><th>İŞLEM</th><th>HAMMADDE / KAYNAK</th><th>P1 / PARÇA</th><th>ATIK</th><th>EKLEME PLANI</th><th>ÜRETİLEN</th><th>YENİ ATIK</th></tr></thead>';
@@ -301,6 +307,28 @@ function drawJoinCards(r,root){
  if(!r.joinPlans.length)return;const g=document.createElement('div');g.className='group';g.innerHTML='<h3>EKLEME DETAYLARI</h3>';
  r.joinPlans.forEach((p,i)=>{const d=document.createElement('div');d.className='joinbox';d.innerHTML=`<b>${i+1}. Ekleme (${p.joins} ekli) → ${esc(p.target.poz||'-')} ${p.target.length} mm</b><div class="joinline">${p.items.map((x,j)=>`<div class="joinseg">${x.no} ATIK<br>${x.length.toFixed(0)} mm</div>${j<p.items.length-1?'<div class="joinmark">EK YERİ</div>':''}`).join('')}</div><div class="small">${p.items.map(x=>x.length.toFixed(0)).join(' + ')} − ${p.target.length} = <b>${p.remainder.toFixed(0)} mm</b>${p.newWaste?` → ${p.newWaste.no} ATIK`:''}</div><div class="small">Sonraki havuz: ${poolTxt(p.after)}</div>`;g.appendChild(d);});root.appendChild(g);
 }
+function calcWasteReport(r,stock){
+  // Nihai artık: kullanılmamış artık havuzu + 100 mm altındaki geri kullanılamayan artıklar.
+  const reusable=r.pool.reduce((s,x)=>s+x.length,0);
+  let smallScrap=0;
+  r.events.forEach(ev=>{
+    if(ev.type==="direct" && !ev.scrap){
+      const w=Math.max(0,stock-ev.bar.used);
+      if(w>0)smallScrap+=w;
+    }
+    if(ev.type==="join" && !ev.data.newWaste){
+      const w=Math.max(0,ev.data.remainder||0);
+      if(w>0)smallScrap+=w;
+    }
+  });
+  return {reusable,smallScrap,total:reusable+smallScrap};
+}
+
+function refreshProductionVisibility(){
+ const show=!!document.getElementById('showProduction')?.checked;
+ document.querySelectorAll('.production-order').forEach(x=>x.style.display=show?'block':'none');
+}
+
 function optimize(){
  const stock=+document.getElementById('stock').value,kerf=+document.getElementById('kerf').value||0,joins=+document.getElementById('joins').value||0,allowance=+document.getElementById('allowance').value||0,minPiece=100;
  const rows=getRows();if(!rows.length)return alert('En az bir geçerli parça girin.');
@@ -320,7 +348,17 @@ function optimize(){
  const m=document.createElement('div');m.className=r.remaining.length?'warn':'ok';m.innerHTML=r.remaining.length?`Üretim <b>${done}/${all.length}</b>. Kalan ${r.remaining.length} parça için yeni hammadde/uygun artık gerekiyor.`:`Sipariş tamamlandı: <b>${done}/${all.length}</b>. Seçilen üst sınır: <b>${joins} ek</b>; çözümde kullanılan en yüksek ek: <b>${actualMax}</b>. Eksiz plana göre hammadde farkı: <b>${saved}</b>.`;root.appendChild(m);
  renderDirectVisuals(r,stock,kerf,root);renderProduction(r,stock,kerf,root);drawJoinCards(r,root);
  const z=document.createElement('div');z.className='group';z.innerHTML=`<h3>SON ARTIK HAVUZU</h3><div class="small">${poolTxt(r.pool)}</div>`;root.appendChild(z);
- document.getElementById('summary').innerHTML=`<div class="stat">İstenen<b>${all.length}</b></div><div class="stat">Tamamlanan<b>${done}</b></div><div class="stat">Doğrudan<b>${r.direct.length}</b></div><div class="stat">Ekleme<b>${r.joinPlans.length}</b></div>`;
+  const wr0=calcWasteReport(r,stock);
+  const rep=document.createElement('div');rep.className='group';rep.innerHTML=`<h3>ATIK / ARTIK RAPORU</h3><table><thead><tr><th>Kalan kullanılabilir artık</th><th>100 mm altı / kullanılamayan fire</th><th>Toplam kalan atık</th></tr></thead><tbody><tr><td>${wr0.reusable.toFixed(0)} mm</td><td>${wr0.smallScrap.toFixed(0)} mm</td><td><b>${wr0.total.toFixed(0)} mm</b></td></tr></tbody></table>`;root.appendChild(rep);
+ const wr=calcWasteReport(r,stock);
+  const purchased=r.bars.length*stock;
+  // Fire/verimlilik raporu: satın alınan toplam ana profil boyuna göre hesaplanır.
+  // Böylece Fire % + Kullanım Verimliliği % = 100 olur.
+  const requiredNet=all.reduce((s,p)=>s+p.length,0);
+  const totalFire=Math.max(0,purchased-requiredNet);
+  const firePct=purchased>0?(totalFire/purchased*100):0;
+  const efficiency=purchased>0?(requiredNet/purchased*100):0;
+  document.getElementById('summary').innerHTML=`<div class="stat">Toplam Gerekli Ana Profil<b>${r.bars.length}</b><span class="small">${purchased.toFixed(0)} mm hammadde</span></div><div class="stat">Toplam Fire<b>${totalFire.toFixed(0)} mm</b><span class="small">(${firePct.toFixed(2)}%)</span></div><div class="stat">Malzeme Kullanım Verimliliği<b>${efficiency.toFixed(2)}%</b><span class="small">Net ihtiyaç / toplam hammadde</span></div>`;
 }
 
 </script>
