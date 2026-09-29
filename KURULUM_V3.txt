@@ -6,3 +6,6 @@ GitHub: MUHENDISLIK_PROGRAMLARI_V3 klasörünün İÇİNDEKİ dosyaları mevcut 
 
 
 2026-09-26 EK MODÜL: Kutu Profil Çatı Metraj V9, apps/cati-metraj/index.html. Offline cache güncellendi.
+
+
+GÜNCELLEME: Profil Kesim + Ekleme V22 MASTER (Windows 11 PDF/Yazdır + Mac PDF/Yazdır + iPhone/iPad PNG Görsel). Offline cache V22.

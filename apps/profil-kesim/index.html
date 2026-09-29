@@ -85,7 +85,8 @@ td input{min-width:90px}
       Üretim Sırasını Göster
     </label>
     <button type="button" onclick="optimize()">KESİM PLANINI OLUŞTUR</button>
-    <button type="button" class="secondary" onclick="printPDF()">Mac — Yazdır / PDF</button>
+    <button type="button" class="secondary" onclick="printWindowsPDF()">Windows 11 — Yazdır / PDF</button>
+    <button type="button" class="secondary" onclick="printMacPDF()">Mac — Yazdır / PDF</button>
     <button type="button" class="secondary" onclick="createMobileImage()">iPhone / iPad — Görsel Oluştur</button>
   </div>
   <div id="pasteBox" class="importbox" style="display:none">
@@ -99,7 +100,7 @@ HEA200    3250    8" oninput="showRawData(this.value);previewImport(this.value,'
     <div id="importPreview" class="import-preview"></div>
   </div>
   <p class="small">“Üretim Sırasını Göster” işaretliyse üretim sırası ekranda ve PDF çıktısında görünür; işaretli değilse ikisinde de gizlenir.</p>
-  <p class="small"><b>Mac:</b> “Mac — Yazdır / PDF” Safari/Chrome yazdırma penceresini kullanır. <b>iPhone / iPad:</b> “Görsel Oluştur” kesim planını yüksek çözünürlüklü PNG olarak üretir; Paylaş menüsünden Fotoğraflara veya Dosyalara kaydedilebilir.</p>
+  <p class="small"><b>Windows 11:</b> “Windows 11 — Yazdır / PDF” Chrome/Edge yazdırma penceresini doğrudan açar; hedef olarak PDF seçilebilir. <b>Mac:</b> ayrı rapor görünümünden Safari/Chrome yazdırma penceresini kullanır. <b>iPhone / iPad:</b> “Görsel Oluştur” kesim planını yüksek çözünürlüklü PNG olarak üretir.</p>
 </section>
 
 <section class="card no-print">
@@ -206,7 +207,15 @@ document.getElementById('file').addEventListener('change',e=>{
  r.onerror=()=>alert('Dosya okunamadı.');
  r.readAsText(f,'UTF-8');
 });
-function printPDF(){
+function printWindowsPDF(){
+  refreshProductionVisibility();
+  var summary=document.getElementById('summary');
+  if(!summary || !summary.innerHTML.trim()){alert('Önce KESİM PLANINI OLUŞTUR butonuna basın.');return;}
+  // Windows 11 / Chrome / Edge: doğrudan aynı sayfanın yerel yazdırma iletişim kutusu.
+  // Popup yok; bu nedenle popup engelleyiciden etkilenmez.
+  setTimeout(function(){window.print();},50);
+}
+function printMacPDF(){
   refreshProductionVisibility();
   var summary=document.getElementById('summary');
   var plans=document.getElementById('plans');
