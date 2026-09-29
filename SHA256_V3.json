@@ -1,11 +1,11 @@
 {
-  "KURULUM_V3.txt": "0c423bbb6db2c832a0524470177becb2bb40fb11a5d6069ad099405792e37ea0",
-  "apps/cati-metraj/index.html": "a0cf42b80758f53eff0e8020338a7d32a52b6e220b3068f80d0bd147fcc1ab60",
-  "apps/hangar/index.html": "f4149b7ff0164946d83a40f2db3830c5147d77049e50692adb9ed5400c18c003",
-  "apps/plaka-nesting/index.html": "69687bb2df9842976d24b48c9eecd868df9921dc0944198179e6b39efbc6f5c7",
-  "apps/profil-kesim/index.html": "c27e498b70f5d8fe9a6bb9189fb12266dcc414cdd396b7b6acd758f1562cf54f",
-  "apps/statik/index.html": "9ea8791756b51cc4f21277b66fe23a0c2205cb3a541bd52b862cd748efef4e10",
-  "index.html": "93805f7dc62aa040f7c29854c74a8787f61cedb4c10ce1bd7ad215bebd3e70a5",
-  "manifest.webmanifest": "ec317fe9c71edd27c817e3eec97ed24bfccaadc215dfbb2cc4da78c410932ea6",
-  "sw.js": "9d8a5edad8a1f1b48427a1ac657adb40a6e2d44f8bf43dfdce031ec70a634713"
+  "package": "Mühendislik Programları V3",
+  "profil_kesim": "V21 iPhone/iPad PNG Görsel",
+  "cati": "V10.6",
+  "files": {
+    "index.html": "93805f7dc62aa040f7c29854c74a8787f61cedb4c10ce1bd7ad215bebd3e70a5",
+    "manifest.webmanifest": "ec317fe9c71edd27c817e3eec97ed24bfccaadc215dfbb2cc4da78c410932ea6",
+    "sw.js": "4fdb0d82f7dedea5f157700fac26989d1d21e716a849c18a0cb29c076e7413b4",
+    "apps/profil-kesim/index.html": "ebccd5c3da5ec89b9e6d5a85afa225c02508a522c6dfe6301ea2406b1c227137"
+  }
 }

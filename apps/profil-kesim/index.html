@@ -86,7 +86,7 @@ td input{min-width:90px}
     </label>
     <button type="button" onclick="optimize()">KESİM PLANINI OLUŞTUR</button>
     <button type="button" class="secondary" onclick="printPDF()">Mac — Yazdır / PDF</button>
-    <button type="button" class="secondary" onclick="createMobilePDF()">iPhone / iPad — PDF Oluştur</button>
+    <button type="button" class="secondary" onclick="createMobileImage()">iPhone / iPad — Görsel Oluştur</button>
   </div>
   <div id="pasteBox" class="importbox" style="display:none">
     <h3>Excel / Notepad Yapıştırma Alanı</h3>
@@ -99,7 +99,7 @@ HEA200    3250    8" oninput="showRawData(this.value);previewImport(this.value,'
     <div id="importPreview" class="import-preview"></div>
   </div>
   <p class="small">“Üretim Sırasını Göster” işaretliyse üretim sırası ekranda ve PDF çıktısında görünür; işaretli değilse ikisinde de gizlenir.</p>
-  <p class="small"><b>Mac:</b> “Mac — Yazdır / PDF” Safari/Chrome yazdırma penceresini kullanır. <b>iPhone / iPad:</b> “PDF Oluştur” doğrudan PDF dosyası üretir; yazdırma penceresine ihtiyaç duymaz.</p>
+  <p class="small"><b>Mac:</b> “Mac — Yazdır / PDF” Safari/Chrome yazdırma penceresini kullanır. <b>iPhone / iPad:</b> “Görsel Oluştur” kesim planını yüksek çözünürlüklü PNG olarak üretir; Paylaş menüsünden Fotoğraflara veya Dosyalara kaydedilebilir.</p>
 </section>
 
 <section class="card no-print">
@@ -303,6 +303,50 @@ function createMobilePDF(){
   try{var blob=buildGraphicPDF(lastPDFModel);var file=new File([blob],'kesim-plani.pdf',{type:'application/pdf'});if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'Kesim Planı PDF'}).catch(function(err){if(err&&err.name==='AbortError')return;openPDFBlob(blob);});}else openPDFBlob(blob);}catch(e){alert('PDF oluşturulamadı: '+e.message);}
 }
 function openPDFBlob(blob){var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.download='kesim-plani.pdf';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},60000);}
+
+
+var lastImageModel=null;
+function roundRect(ctx,x,y,w,h,r,fill,stroke){
+  r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.stroke();}
+}
+function wrapCanvasText(ctx,text,x,y,maxWidth,lineHeight){
+  const words=String(text).split(/\s+/);let line='',yy=y;
+  for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width>maxWidth&&line){ctx.fillText(line,x,yy);line=word;yy+=lineHeight;}else line=test;}
+  if(line)ctx.fillText(line,x,yy);return yy+lineHeight;
+}
+function buildCutPlanCanvas(model){
+  const scale=2,W=1240,pad=55,inner=W-pad*2,barH=54,rowGap=92;
+  let estimated=300;
+  const groups={};model.r.bars.forEach(b=>{const pr=(b.parts[0]&&b.parts[0].profile)||'';(groups[pr]||(groups[pr]=[])).push(b);});
+  estimated+=model.r.bars.length*rowGap+Object.keys(groups).length*60+model.r.joinPlans.length*125+260;
+  if(model.showProduction) estimated+=Math.min(model.r.events.length*48+90,1600);
+  const canvas=document.createElement('canvas');canvas.width=W*scale;canvas.height=estimated*scale;const ctx=canvas.getContext('2d');ctx.scale(scale,scale);
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,estimated);ctx.fillStyle='#17212b';ctx.font='700 28px Arial';ctx.fillText('HADDE MAMULÜ PROFİL KESİM OPTİMİZASYONU',pad,55);
+  let y=90;ctx.font='700 17px Arial';
+  const cards=[['Toplam Gerekli Ana Profil',model.r.bars.length+' adet'],['Toplam Fire',model.totalFire.toFixed(0)+' mm  ('+model.firePct.toFixed(2)+'%)'],['Malzeme Kullanım Verimliliği',model.efficiency.toFixed(2)+'%']];
+  cards.forEach((c,i)=>{const cw=(inner-24)/3,x=pad+i*(cw+12);roundRect(ctx,x,y,cw,82,10,'#f7f9fc','#cfd8e3');ctx.fillStyle='#5b6672';ctx.font='600 14px Arial';ctx.fillText(c[0],x+14,y+24);ctx.fillStyle='#17212b';ctx.font='700 23px Arial';ctx.fillText(c[1],x+14,y+57);});y+=115;
+  for(const [profile,bars] of Object.entries(groups)){
+    ctx.fillStyle='#17212b';ctx.font='700 19px Arial';ctx.fillText(profile+' — DOĞRUDAN KESİM GÖRSELLERİ',pad,y);y+=28;
+    bars.forEach((b,idx)=>{const waste=Math.max(0,model.stock-b.used);ctx.fillStyle='#34404d';ctx.font='600 13px Arial';ctx.fillText((idx+1)+'. Hammadde '+model.stock+' mm — Kullanılan '+b.used.toFixed(1)+' mm — Artık '+waste.toFixed(1)+' mm',pad,y);y+=12;
+      let x=pad;const bh=barH;ctx.lineWidth=1.5;
+      b.parts.forEach((part,j)=>{let pw=Math.max(5,inner*(part.length/model.stock));ctx.fillStyle='#cfe3f6';ctx.fillRect(x,y,pw,bh);ctx.strokeStyle='#17212b';ctx.strokeRect(x,y,pw,bh);ctx.fillStyle='#17212b';ctx.font='700 13px Arial';const label=(part.poz||'-')+' / '+part.length;if(pw>55)ctx.fillText(label,x+7,y+32);x+=pw;if(j<b.parts.length-1&&model.kerf>0){let kw=Math.max(2,inner*(model.kerf/model.stock));ctx.fillStyle='#666';ctx.fillRect(x,y,kw,bh);x+=kw;}});
+      if(waste>0){let ww=Math.max(5,inner*(waste/model.stock));ctx.fillStyle='#ececec';ctx.fillRect(x,y,ww,bh);ctx.strokeStyle='#17212b';ctx.strokeRect(x,y,ww,bh);ctx.fillStyle='#444';ctx.font='700 12px Arial';if(ww>70)ctx.fillText('ARTIK '+waste.toFixed(0),x+6,y+32);}
+      y+=bh+13;ctx.fillStyle='#5b6672';ctx.font='13px Arial';ctx.fillText('Kesimler: '+b.parts.map(p=>(p.poz||'-')+' '+p.length+' mm').join('  •  '),pad,y);y+=28;
+    });y+=12;
+  }
+  if(model.r.joinPlans.length){ctx.fillStyle='#17212b';ctx.font='700 19px Arial';ctx.fillText('EKLEME DETAYLARI',pad,y);y+=28;model.r.joinPlans.forEach((jp,i)=>{ctx.font='700 14px Arial';ctx.fillText((i+1)+'. '+jp.target.poz+' '+jp.target.length+' mm — '+jp.joins+' ekli',pad,y);y+=10;const total=jp.items.reduce((a,b)=>a+b.length,0);let x=pad;jp.items.forEach((it,k)=>{let sw=inner*(it.length/total);ctx.fillStyle='#eaf4ff';ctx.fillRect(x,y,sw,48);ctx.strokeStyle='#17212b';ctx.strokeRect(x,y,sw,48);ctx.fillStyle='#17212b';ctx.font='700 12px Arial';if(sw>75)ctx.fillText(it.no+' ATIK / '+it.length.toFixed(0),x+6,y+29);x+=sw;if(k<jp.items.length-1){ctx.save();ctx.strokeStyle='#d00000';ctx.lineWidth=3;ctx.setLineDash([7,5]);ctx.beginPath();ctx.moveTo(x,y-4);ctx.lineTo(x,y+52);ctx.stroke();ctx.restore();ctx.fillStyle='#d00000';ctx.font='700 10px Arial';ctx.fillText('EK YERİ',x-22,y-8);}});y+=67;ctx.fillStyle='#5b6672';ctx.font='13px Arial';ctx.fillText('Yeni artık: '+jp.remainder.toFixed(0)+' mm',pad,y);y+=28;});}
+  if(model.showProduction){ctx.fillStyle='#17212b';ctx.font='700 19px Arial';ctx.fillText('ÜRETİM SIRASI — DOĞRUDAN KESİM + ZİNCİRLEME EKLEME',pad,y);y+=26;ctx.font='12px Arial';model.r.events.forEach((ev,i)=>{let t=ev.type==='direct'?'DOĞRUDAN: Hammadde '+ev.bar.no+' → '+ev.bar.parts.map(p=>(p.poz||'-')+' '+p.length).join(' + '):'EKLEME: '+ev.data.items.map(a=>a.no+' ATIK '+a.length.toFixed(0)).join(' + ')+' → '+ev.data.target.poz+' '+ev.data.target.length;y=wrapCanvasText(ctx,(i+1)+'. '+t,pad,y,inner,18);});y+=15;}
+  const wr=calcWasteReport(model.r,model.stock);ctx.fillStyle='#17212b';ctx.font='700 19px Arial';ctx.fillText('ATIK / ARTIK RAPORU',pad,y);y+=28;ctx.font='14px Arial';ctx.fillText('Kalan kullanılabilir artık: '+wr.reusable.toFixed(0)+' mm',pad,y);y+=22;ctx.fillText('100 mm altı / kullanılamayan fire: '+wr.smallScrap.toFixed(0)+' mm',pad,y);y+=22;ctx.fillText('Toplam kalan atık: '+wr.total.toFixed(0)+' mm',pad,y);
+  const crop=document.createElement('canvas');crop.width=canvas.width;crop.height=Math.min(canvas.height,(y+60)*scale);crop.getContext('2d').drawImage(canvas,0,0,crop.width,crop.height,0,0,crop.width,crop.height);return crop;
+}
+function canvasToBlob(canvas){return new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('PNG oluşturulamadı.')),'image/png',1));}
+async function createMobileImage(){
+  if(!lastImageModel){alert('Önce KESİM PLANINI OLUŞTUR butonuna basın.');return;}
+  try{const canvas=buildCutPlanCanvas(lastImageModel),blob=await canvasToBlob(canvas),file=new File([blob],'kesim-plani.png',{type:'image/png'});
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Kesim Planı Görseli'});return;}
+    const url=URL.createObjectURL(blob);const w=window.open(url,'_blank');if(!w){const a=document.createElement('a');a.href=url;a.download='kesim-plani.png';document.body.appendChild(a);a.click();a.remove();}setTimeout(()=>URL.revokeObjectURL(url),120000);
+  }catch(e){if(e&&e.name==='AbortError')return;alert('Görsel oluşturulamadı: '+(e.message||e));}
+}
 
 window.addEventListener('beforeprint', refreshProductionVisibility);
 
@@ -510,6 +554,7 @@ function optimize(){
   const firePct=purchased>0?(totalFire/purchased*100):0;
   const efficiency=purchased>0?(requiredNet/purchased*100):0;
   document.getElementById('summary').innerHTML=`<div class="stat">Toplam Gerekli Ana Profil<b>${r.bars.length}</b><span class="small">${purchased.toFixed(0)} mm hammadde</span></div><div class="stat">Toplam Fire<b>${totalFire.toFixed(0)} mm</b><span class="small">(${firePct.toFixed(2)}%)</span></div><div class="stat">Malzeme Kullanım Verimliliği<b>${efficiency.toFixed(2)}%</b><span class="small">Net ihtiyaç / toplam hammadde</span></div>`;
+  lastImageModel={r:r,stock:stock,kerf:kerf,totalFire:totalFire,firePct:firePct,efficiency:efficiency,showProduction:!!(document.getElementById('showProduction')&&document.getElementById('showProduction').checked)};
 }
 
 </script>
