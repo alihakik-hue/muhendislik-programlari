@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hadde Mamulü Profil Kesim Optimizasyonu V15</title>
+<title>Hadde Mamulü Profil Kesim Optimizasyonu — V17</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#d8dee5;--text:#17212b;--muted:#64707d;--accent:#145ea8;--danger:#b42318}
 *{box-sizing:border-box}
@@ -76,16 +76,16 @@ td input{min-width:90px}
     <div><label>Dosya Seç — Profil | Uzunluk (mm) | Adet</label><input id="file" type="file" accept=".txt,.csv,.tsv,text/plain,text/csv"></div>
   </div>
   <div class="actions">
-    <button onclick="addRow()">+ Satır Ekle</button>
-    <button class="light" onclick="togglePasteBox()">Excel / Notepad Yapıştır</button>
-    <button class="light" onclick="document.getElementById('file').click()">Dosya Seç</button>
-    <button class="danger" onclick="clearRows()">Temizle</button>
+    <button type="button" onclick="addRow()">+ Satır Ekle</button>
+    <button type="button" class="light" onclick="togglePasteBox()">Excel / Notepad Yapıştır</button>
+    <button type="button" class="light" onclick="document.getElementById('file').click()">Dosya Seç</button>
+    <button type="button" class="danger" onclick="clearRows()">Temizle</button>
     <label style="display:flex;align-items:center;gap:6px;margin:0 4px;font-weight:700;cursor:pointer">
       <input id="showProduction" type="checkbox" onchange="refreshProductionVisibility()" style="width:auto;accent-color:#145ea8">
       Üretim Sırasını Göster
     </label>
-    <button onclick="optimize()">KESİM PLANINI OLUŞTUR</button>
-    <button class="secondary" onclick="printPDF()">Yazdır / PDF Kaydet</button>
+    <button type="button" onclick="optimize()">KESİM PLANINI OLUŞTUR</button>
+    <button type="button" class="secondary" onclick="printPDF()">Yazdır / PDF Kaydet</button>
   </div>
   <div id="pasteBox" class="importbox" style="display:none">
     <h3>Excel / Notepad Yapıştırma Alanı</h3>
@@ -93,12 +93,12 @@ td input{min-width:90px}
     <textarea id="pasteArea" placeholder="Örnek:
 IPE300    4100    15
 HEA200    3250    8" oninput="showRawData(this.value);previewImport(this.value,'Yapıştırılan veri')"></textarea>
-    <div class="raw-title">Yapıştırdığınız / Dosyadan Okunan Ham Veri</div><div id="rawImportView" class="raw-view">Henüz veri yok.</div><div class="actions"><button onclick="applyPasteData()">GÖRÜNEN VERİYİ LİSTEYE AKTAR</button><button class="light" onclick="clearImportPreview()">Alanı Temizle</button></div>
+    <div class="raw-title">Yapıştırdığınız / Dosyadan Okunan Ham Veri</div><div id="rawImportView" class="raw-view">Henüz veri yok.</div><div class="actions"><button type="button" onclick="applyPasteData()">GÖRÜNEN VERİYİ LİSTEYE AKTAR</button><button type="button" class="light" onclick="clearImportPreview()">Alanı Temizle</button></div>
     <div id="importStatus" class="import-status">Henüz veri yapıştırılmadı.</div>
     <div id="importPreview" class="import-preview"></div>
   </div>
   <p class="small">“Üretim Sırasını Göster” işaretliyse üretim sırası ekranda ve PDF çıktısında görünür; işaretli değilse ikisinde de gizlenir.</p>
-  <p class="small"><b>iPhone / iPad:</b> “Yazdır / PDF Kaydet” düğmesine dokunun. iOS yazdırma ekranında önizlemeyi iki parmakla büyütün; açılan PDF’yi Paylaş menüsünden Dosyalara Kaydet ile saklayabilirsiniz.</p>
+  <p class="small"><b>iPhone / iPad:</b> “Yazdır / PDF Kaydet” düğmesi Safari yazdırma ekranını doğrudan açar. Açılmazsa Safari’nin Paylaş menüsünden <b>Yazdır</b> seçeneğini kullanın. Baskı önizlemesinde sayfayı iki parmakla büyütüp Paylaş → Dosyalara Kaydet ile PDF olarak saklayabilirsiniz.</p>
 </section>
 
 <section class="card no-print">
@@ -127,10 +127,10 @@ function addRow(v={profile:'',length:'',qty:1,poz:''}){
  <td><input class="length" type="number" min="1" value="${esc(v.length)}"></td>
  <td><input class="qty" type="number" min="1" value="${esc(v.qty||1)}"></td>
  <td style="display:none"><input class="poz" value="${esc(v.poz)}"></td>
- <td><button class="danger" onclick="this.closest('tr').remove()">Sil</button></td>`;
+ <td><button type="button" class="danger" onclick="this.closest('tr').remove()">Sil</button></td>`;
  tbody.appendChild(tr);
 }
-function esc(x){return String(x??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function esc(x){return String(x==null?'':x).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 for(let i=0;i<3;i++) addRow();
 
 function getRows(){
@@ -142,7 +142,7 @@ function getRows(){
  })).filter(x=>x.profile && x.length>0 && x.qty>0);
 }
 function normalizeNumber(v){
- let x=String(v??'').trim().replace(/\s/g,'');
+ let x=String(v==null?'':v).trim().replace(/\s/g,'');
  if(!x)return NaN;
  // 3.250 / 3,250 gibi binlik ayraçları; 3250,5 gibi ondalığı destekle.
  if(/^\d{1,3}([.,]\d{3})+$/.test(x)) x=x.replace(/[.,]/g,'');
@@ -161,7 +161,7 @@ function splitImportLine(line){
  return line.trim().split(/\s{2,}/);
 }
 function parseText(text){
- text=String(text??'').replace(/^\uFEFF/,'');
+ text=String(text==null?'':text).replace(/^\uFEFF/,'');
  const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean),out=[];
  for(const line of lines){
    const parts=splitImportLine(line).map(x=>x.trim());
@@ -206,13 +206,19 @@ document.getElementById('file').addEventListener('change',e=>{
  r.readAsText(f,'UTF-8');
 });
 function printPDF(){
- refreshProductionVisibility();
- const isiOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
- if(isiOS){
-   // Safari/iOS'ta baskı çağrısını doğrudan kullanıcı tıklaması içinde çalıştır.
-   setTimeout(()=>window.print(),50);
- }else window.print();
+  // iPhone/iPad Safari: window.print() mutlaka kullanıcı dokunuşunun
+  // aynı çağrı zinciri içinde çalışmalı. setTimeout kullanılırsa iOS bunu
+  // engelleyebiliyor. Bu nedenle doğrudan baskı penceresini açıyoruz.
+  refreshProductionVisibility();
+  try{
+    window.focus();
+    window.print();
+  }catch(err){
+    alert('Yazdırma penceresi açılamadı. Safari Paylaş menüsünden Yazdır seçeneğini kullanın.');
+  }
 }
+
+window.addEventListener('beforeprint', refreshProductionVisibility);
 
 function clearRows(){tbody.innerHTML='';for(let i=0;i<3;i++)addRow();document.getElementById('plans').innerHTML='<div class="empty">Henüz kesim planı oluşturulmadı.</div>';document.getElementById('summary').innerHTML='';}
 
@@ -302,7 +308,7 @@ function poolTxt(p){return p.length?p.map(x=>`${x.no} ATIK ${x.length.toFixed(0)
 function renderDirectVisuals(r,stock,kerf,root){
  const groups={};
  r.bars.forEach(b=>{
-   const profile=b.parts[0]?.profile||"";
+   const profile=(b.parts[0]&&b.parts[0].profile)||"";
    if(!groups[profile])groups[profile]=[];
    groups[profile].push(b);
  });
@@ -312,7 +318,7 @@ function renderDirectVisuals(r,stock,kerf,root){
    bars.forEach((b,i)=>{
      const w=Number((stock-b.used).toFixed(1));
      const ev=r.events.find(e=>e.type==="direct"&&e.bar===b);
-     const scrap=ev?.scrap;
+     const scrap=ev&&ev.scrap;
      const d=document.createElement('div');d.className='bar';
      d.innerHTML=`<div class="bar-title">${i+1}. Hammadde — ${stock} mm — Kullanılan ${b.used.toFixed(1)} mm — Artık ${w.toFixed(1)} mm${scrap?` (${scrap.no} ATIK)`:''}</div>`;
      const t=document.createElement('div');t.className='track';
@@ -344,7 +350,7 @@ function renderDirectVisuals(r,stock,kerf,root){
 
 function renderProduction(r,stock,kerf,root){
  const g=document.createElement('div');g.className='group production-order';
- g.style.display=document.getElementById('showProduction')?.checked?'block':'none';
+ g.style.display=(document.getElementById('showProduction')&&document.getElementById('showProduction').checked)?'block':'none';
  g.innerHTML='<h3>ÜRETİM SIRASI — DOĞRUDAN KESİM + ZİNCİRLEME EKLEME</h3>';
  const table=document.createElement('table');
  table.innerHTML='<thead><tr><th>İŞLEM</th><th>HAMMADDE / KAYNAK</th><th>P1 / PARÇA</th><th>ATIK</th><th>EKLEME PLANI</th><th>ÜRETİLEN</th><th>YENİ ATIK</th></tr></thead>';
@@ -384,7 +390,7 @@ function calcWasteReport(r,stock){
 }
 
 function refreshProductionVisibility(){
- const show=!!document.getElementById('showProduction')?.checked;
+ const show=!!(document.getElementById('showProduction')&&document.getElementById('showProduction').checked);
  document.querySelectorAll('.production-order').forEach(x=>x.style.display=show?'block':'none');
 }
 
