@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hadde Mamulü Profil Kesim Optimizasyonu — V18</title>
+<title>Hadde Mamulü Profil Kesim Optimizasyonu — V19</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#d8dee5;--text:#17212b;--muted:#64707d;--accent:#145ea8;--danger:#b42318}
 *{box-sizing:border-box}
@@ -85,7 +85,8 @@ td input{min-width:90px}
       Üretim Sırasını Göster
     </label>
     <button type="button" onclick="optimize()">KESİM PLANINI OLUŞTUR</button>
-    <button type="button" class="secondary" onclick="printPDF()">Yazdır / PDF Kaydet</button>
+    <button type="button" class="secondary" onclick="printPDF()">Mac — Yazdır / PDF</button>
+    <button type="button" class="secondary" onclick="createMobilePDF()">iPhone / iPad — PDF Oluştur</button>
   </div>
   <div id="pasteBox" class="importbox" style="display:none">
     <h3>Excel / Notepad Yapıştırma Alanı</h3>
@@ -98,7 +99,7 @@ HEA200    3250    8" oninput="showRawData(this.value);previewImport(this.value,'
     <div id="importPreview" class="import-preview"></div>
   </div>
   <p class="small">“Üretim Sırasını Göster” işaretliyse üretim sırası ekranda ve PDF çıktısında görünür; işaretli değilse ikisinde de gizlenir.</p>
-  <p class="small"><b>iPhone / iPad:</b> “Yazdır / PDF Kaydet” düğmesi Safari yazdırma ekranını doğrudan açar. Açılmazsa Safari’nin Paylaş menüsünden <b>Yazdır</b> seçeneğini kullanın. Baskı önizlemesinde sayfayı iki parmakla büyütüp Paylaş → Dosyalara Kaydet ile PDF olarak saklayabilirsiniz.</p>
+  <p class="small"><b>Mac:</b> “Mac — Yazdır / PDF” Safari/Chrome yazdırma penceresini kullanır. <b>iPhone / iPad:</b> “PDF Oluştur” doğrudan PDF dosyası üretir; yazdırma penceresine ihtiyaç duymaz.</p>
 </section>
 
 <section class="card no-print">
@@ -250,6 +251,81 @@ function printPDF(){
   w.document.open();
   w.document.write(html);
   w.document.close();
+}
+
+
+function pdfAscii(s){
+  var map={'Ç':'C','ç':'c','Ğ':'G','ğ':'g','İ':'I','ı':'i','Ö':'O','ö':'o','Ş':'S','ş':'s','Ü':'U','ü':'u','—':'-','–':'-','“':'"','”':'"','’':"'",'→':'>','²':'2'};
+  return String(s||'').replace(/[ÇçĞğİıÖöŞşÜü—–“”’→²]/g,function(c){return map[c]||c;}).replace(/[^\x20-\x7E\n]/g,' ');
+}
+function pdfEscape(s){return s.replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');}
+function buildSimplePDF(lines){
+  var perPage=55, pages=[];
+  for(var i=0;i<lines.length;i+=perPage) pages.push(lines.slice(i,i+perPage));
+  if(!pages.length) pages=[['Kesim plani bulunamadi.']];
+  var objs=[null];
+  objs[1]='<< /Type /Catalog /Pages 2 0 R >>';
+  var kids=[];
+  var firstPageObj=4;
+  for(var p=0;p<pages.length;p++) kids.push((firstPageObj+p*2)+' 0 R');
+  objs[2]='<< /Type /Pages /Kids ['+kids.join(' ')+'] /Count '+pages.length+' >>';
+  objs[3]='<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
+  for(var pg=0;pg<pages.length;pg++){
+    var pageObj=firstPageObj+pg*2, contentObj=pageObj+1;
+    var content='BT\n/F1 9 Tf\n42 800 Td\n11 TL\n';
+    for(var j=0;j<pages[pg].length;j++){
+      var line=pdfEscape(pdfAscii(pages[pg][j]).slice(0,110));
+      content+='('+line+') Tj\nT*\n';
+    }
+    content+='ET';
+    objs[pageObj]='<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents '+contentObj+' 0 R >>';
+    objs[contentObj]='<< /Length '+content.length+' >>\nstream\n'+content+'\nendstream';
+  }
+  var out='%PDF-1.4\n%1234\n', offsets=[0];
+  for(var n=1;n<objs.length;n++){offsets[n]=out.length;out+=n+' 0 obj\n'+objs[n]+'\nendobj\n';}
+  var xref=out.length;
+  out+='xref\n0 '+objs.length+'\n0000000000 65535 f \n';
+  for(var k=1;k<objs.length;k++) out+=String(offsets[k]).padStart(10,'0')+' 00000 n \n';
+  out+='trailer\n<< /Size '+objs.length+' /Root 1 0 R >>\nstartxref\n'+xref+'\n%%EOF';
+  return new Blob([out],{type:'application/pdf'});
+}
+function collectPDFLines(){
+  refreshProductionVisibility();
+  var summary=document.getElementById('summary'), plans=document.getElementById('plans');
+  if(!summary || !summary.innerHTML.trim()) return null;
+  var clone=plans.cloneNode(true);
+  var prod=clone.querySelector('.production-section');
+  var checked=document.getElementById('showProduction') && document.getElementById('showProduction').checked;
+  if(prod && !checked) prod.remove();
+  var raw='HADDE MAMULU PROFIL KESIM OPTIMIZASYONU\n\n'+summary.innerText+'\n\n'+clone.innerText;
+  var base=pdfAscii(raw).split(/\n+/), lines=[];
+  base.forEach(function(t){
+    t=t.trim(); if(!t)return;
+    while(t.length>105){var cut=t.lastIndexOf(' ',105);if(cut<40)cut=105;lines.push(t.slice(0,cut));t=t.slice(cut).trim();}
+    if(t)lines.push(t);
+  });
+  return lines;
+}
+function createMobilePDF(){
+  var lines=collectPDFLines();
+  if(!lines){alert('Önce KESİM PLANINI OLUŞTUR butonuna basın.');return;}
+  try{
+    var blob=buildSimplePDF(lines);
+    var file=new File([blob],'kesim-plani.pdf',{type:'application/pdf'});
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:'Kesim Planı PDF'}).catch(function(err){
+        if(err && err.name==='AbortError')return;
+        openPDFBlob(blob);
+      });
+    }else openPDFBlob(blob);
+  }catch(e){alert('PDF oluşturulamadı: '+e.message);}
+}
+function openPDFBlob(blob){
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.target='_blank';a.rel='noopener';a.download='kesim-plani.pdf';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);},60000);
 }
 
 window.addEventListener('beforeprint', refreshProductionVisibility);
