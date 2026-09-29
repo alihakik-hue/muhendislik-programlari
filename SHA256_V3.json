@@ -3,9 +3,9 @@
   "apps/cati-metraj/index.html": "a0cf42b80758f53eff0e8020338a7d32a52b6e220b3068f80d0bd147fcc1ab60",
   "apps/hangar/index.html": "f4149b7ff0164946d83a40f2db3830c5147d77049e50692adb9ed5400c18c003",
   "apps/plaka-nesting/index.html": "69687bb2df9842976d24b48c9eecd868df9921dc0944198179e6b39efbc6f5c7",
-  "apps/profil-kesim/index.html": "7142207c44687e56fb206eb069defe24d9de4f9f688eb5d498f6e025b7d1405d",
+  "apps/profil-kesim/index.html": "4de088c30857b7ec3fd6ea4a9324b308f6bdca981c70cf0208a1eb4b9e401cd7",
   "apps/statik/index.html": "9ea8791756b51cc4f21277b66fe23a0c2205cb3a541bd52b862cd748efef4e10",
   "index.html": "6a17c9347b45b416b1b2ddabd9ef0d3c020d61955afabb9ac4640bf6ba484b85",
   "manifest.webmanifest": "ec317fe9c71edd27c817e3eec97ed24bfccaadc215dfbb2cc4da78c410932ea6",
-  "sw.js": "e5f0812624dba100e6d5b803cb637e5e57990302c228ca529a3b4246c239454b"
+  "sw.js": "7b509cc53f4ed13ce391cd25a4cb49c94354a4b100545bb828e4445ab17043ae"
 }

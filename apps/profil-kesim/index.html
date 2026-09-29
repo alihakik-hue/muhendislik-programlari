@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hadde Mamulü Profil Kesim Optimizasyonu</title>
+<title>Hadde Mamulü Profil Kesim Optimizasyonu V15</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#d8dee5;--text:#17212b;--muted:#64707d;--accent:#145ea8;--danger:#b42318}
 *{box-sizing:border-box}
@@ -42,12 +42,13 @@ td input{min-width:90px}
 .warn{padding:10px;border-radius:8px;background:#fff4e5;border:1px solid #f79009;margin:10px 0}
 .ok{padding:10px;border-radius:8px;background:#ecfdf3;border:1px solid #12b76a;margin:10px 0}
 .empty{padding:20px;text-align:center;color:var(--muted)}
+.importbox{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#f8fafc}.importbox h3{margin:0 0 8px;font-size:15px}.importbox textarea{width:100%;min-height:130px;resize:vertical;padding:9px;border:1px solid #bfc7d0;border-radius:7px;font:13px monospace;background:#fff}.import-preview{margin-top:10px;max-height:240px;overflow:auto}.import-preview table{min-width:0}.import-status{font-size:12px;color:var(--muted);margin-top:6px}.raw-title{font-size:13px;font-weight:700;margin:10px 0 5px}.raw-view{white-space:pre-wrap;word-break:break-word;min-height:54px;max-height:180px;overflow:auto;padding:9px;border:1px solid #bfc7d0;border-radius:7px;background:#fff;font:13px monospace;color:#17212b}
 @media(max-width:800px){.controls{grid-template-columns:1fr 1fr}.summary{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.controls,.summary{grid-template-columns:1fr}header h1{font-size:18px}main{padding:9px}}
 @media print{
  body{background:#fff}.no-print{display:none!important}.card{box-shadow:none;border:0;padding:0}
  header{background:#fff;color:#000;padding:0 0 10px}
- .group{break-inside:avoid}.track{height:34px}
+ .group{break-inside:avoid;page-break-inside:avoid}.track{height:34px;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}.seg{border-right:1px solid #222!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}.seg.cut{background:#cfe3f6!important}.seg.waste{background:#ececec!important}
 }
 </style>
 </head>
@@ -72,32 +73,43 @@ td input{min-width:90px}
       <option value="4">4 ekli (5 parça)</option></select>
     </div>
     <div><label>Her ek için kaynak payı (mm)</label><input id="allowance" type="number" min="0" step="1" value="0"></div>
-    <div><label>Dosya</label><input id="file" type="file" accept=".txt,.csv,.tsv"></div>
+    <div><label>Dosya Seç — Profil | Uzunluk (mm) | Adet</label><input id="file" type="file" accept=".txt,.csv,.tsv,text/plain,text/csv"></div>
   </div>
   <div class="actions">
     <button onclick="addRow()">+ Satır Ekle</button>
-    <button class="light" onclick="pasteData()">Excel / Notepad Yapıştır</button>
-    <button class="light" onclick="document.getElementById('file').click()">TXT / CSV Al</button>
+    <button class="light" onclick="togglePasteBox()">Excel / Notepad Yapıştır</button>
+    <button class="light" onclick="document.getElementById('file').click()">Dosya Seç</button>
     <button class="danger" onclick="clearRows()">Temizle</button>
     <label style="display:flex;align-items:center;gap:6px;margin:0 4px;font-weight:700;cursor:pointer">
       <input id="showProduction" type="checkbox" onchange="refreshProductionVisibility()" style="width:auto;accent-color:#145ea8">
       Üretim Sırasını Göster
     </label>
     <button onclick="optimize()">KESİM PLANINI OLUŞTUR</button>
-    <button class="secondary" onclick="window.print()">Yazdır / PDF Kaydet</button>
+    <button class="secondary" onclick="printPDF()">Yazdır / PDF Kaydet</button>
+  </div>
+  <div id="pasteBox" class="importbox" style="display:none">
+    <h3>Excel / Notepad Yapıştırma Alanı</h3>
+    <div class="small"><b>Sıralama her yerde aynıdır:</b> Profil Cinsi | Uzunluk (mm) | Adet</div>
+    <textarea id="pasteArea" placeholder="Örnek:
+IPE300    4100    15
+HEA200    3250    8" oninput="showRawData(this.value);previewImport(this.value,'Yapıştırılan veri')"></textarea>
+    <div class="raw-title">Yapıştırdığınız / Dosyadan Okunan Ham Veri</div><div id="rawImportView" class="raw-view">Henüz veri yok.</div><div class="actions"><button onclick="applyPasteData()">GÖRÜNEN VERİYİ LİSTEYE AKTAR</button><button class="light" onclick="clearImportPreview()">Alanı Temizle</button></div>
+    <div id="importStatus" class="import-status">Henüz veri yapıştırılmadı.</div>
+    <div id="importPreview" class="import-preview"></div>
   </div>
   <p class="small">“Üretim Sırasını Göster” işaretliyse üretim sırası ekranda ve PDF çıktısında görünür; işaretli değilse ikisinde de gizlenir.</p>
+  <p class="small"><b>iPhone / iPad:</b> “Yazdır / PDF Kaydet” düğmesine dokunun. iOS yazdırma ekranında önizlemeyi iki parmakla büyütün; açılan PDF’yi Paylaş menüsünden Dosyalara Kaydet ile saklayabilirsiniz.</p>
 </section>
 
 <section class="card no-print">
   <h2>Kesilecek parçalar</h2>
   <div class="table-wrap">
     <table id="inputTable">
-      <thead><tr><th>Malzeme / Profil</th><th>Uzunluk (mm)</th><th>Adet</th><th>Poz</th><th></th></tr></thead>
+      <thead><tr><th>Profil Cinsi</th><th>Uzunluk (mm)</th><th>Adet</th><th></th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
-  <p class="small">Excel'den kopyalayıp yapıştırırken sıralama: Malzeme | Uzunluk | Adet | Poz. Örnek: IPE300 | 3250 | 5 | P1</p>
+  <p class="small">Excel, Notepad, TXT ve CSV için tek sıralama: Profil Cinsi | Uzunluk (mm) | Adet. Örnek: IPE300 | 3250 | 5</p>
 </section>
 
 <section class="card">
@@ -114,7 +126,7 @@ function addRow(v={profile:'',length:'',qty:1,poz:''}){
  tr.innerHTML=`<td><input class="profile" value="${esc(v.profile)}"></td>
  <td><input class="length" type="number" min="1" value="${esc(v.length)}"></td>
  <td><input class="qty" type="number" min="1" value="${esc(v.qty||1)}"></td>
- <td><input class="poz" value="${esc(v.poz)}"></td>
+ <td style="display:none"><input class="poz" value="${esc(v.poz)}"></td>
  <td><button class="danger" onclick="this.closest('tr').remove()">Sil</button></td>`;
  tbody.appendChild(tr);
 }
@@ -129,31 +141,78 @@ function getRows(){
   poz:tr.querySelector('.poz').value.trim()
  })).filter(x=>x.profile && x.length>0 && x.qty>0);
 }
+function normalizeNumber(v){
+ let x=String(v??'').trim().replace(/\s/g,'');
+ if(!x)return NaN;
+ // 3.250 / 3,250 gibi binlik ayraçları; 3250,5 gibi ondalığı destekle.
+ if(/^\d{1,3}([.,]\d{3})+$/.test(x)) x=x.replace(/[.,]/g,'');
+ else if(x.includes(',')&&!x.includes('.')) x=x.replace(',','.');
+ else if(x.includes(',')&&x.includes('.')) x=x.lastIndexOf(',')>x.lastIndexOf('.')?x.replace(/\./g,'').replace(',','.'):x.replace(/,/g,'');
+ x=x.replace(/[^0-9.+-]/g,'');
+ return Number(x);
+}
+function splitImportLine(line){
+ // Excel kopyalama = TAB. CSV/TXT için ; | , ve çoklu boşluk desteklenir.
+ if(line.includes('\t')) return line.split('\t');
+ if(line.includes(';')) return line.split(';');
+ if(line.includes('|')) return line.split('|');
+ const comma=line.split(',');
+ if(comma.length>=3) return comma;
+ return line.trim().split(/\s{2,}/);
+}
 function parseText(text){
- const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
- const out=[];
+ text=String(text??'').replace(/^\uFEFF/,'');
+ const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean),out=[];
  for(const line of lines){
-   const parts=line.includes('\\t')?line.split('\\t'):line.split(/[;,]/);
+   const parts=splitImportLine(line).map(x=>x.trim());
    if(parts.length<3) continue;
-   const low=parts.map(x=>x.trim().toLowerCase());
-   if(low.some(x=>/malzeme|profil|uzunluk|adet|miktar|poz/.test(x)) && !/^\\d/.test(parts[1]?.trim())) continue;
-   const profile=parts[0].trim();
-   const length=Number(String(parts[1]).replace(',','.').replace(/[^0-9.]/g,''));
-   const qty=Number(String(parts[2]).replace(',','.').replace(/[^0-9.]/g,''))||1;
-   const poz=(parts[3]||'').trim();
-   if(profile && length>0) out.push({profile,length,qty,poz});
+   const low=parts.map(x=>x.toLocaleLowerCase('tr-TR'));
+   if(low.some(x=>/malzeme|profil|uzunluk|boy|adet|miktar|poz/.test(x)) && !Number.isFinite(normalizeNumber(parts[1]))) continue;
+   const profile=parts[0], length=normalizeNumber(parts[1]), qty=Math.max(1,Math.round(normalizeNumber(parts[2])||1));
+   if(profile && Number.isFinite(length) && length>0) out.push({profile,length,qty,poz:'P'+(out.length+1)});
  }
  return out;
 }
-async function pasteData(){
- const text=prompt('Excel / Notepad verisini buraya yapıştırın:');
- if(!text)return;
- parseText(text).forEach(addRow);
+function importParsed(text,source){
+ const rows=parseText(text);
+ if(!rows.length){alert((source||'Veri')+' okunamadı. Sıralama: Profil Cinsi | Uzunluk (mm) | Adet. Excel, Notepad, TXT ve CSV aynı sırayı kullanır.');return false;}
+ // Boş başlangıç satırlarını temizle, mevcut dolu satırları koru.
+ [...tbody.querySelectorAll('tr')].forEach(tr=>{const a=[...tr.querySelectorAll('input')];if(a.every(x=>!String(x.value).trim() || (x.classList.contains('qty')&&x.value==='1')))tr.remove();});
+ rows.forEach(addRow);alert(rows.length+' satır başarıyla alındı.');return true;
 }
+function togglePasteBox(){
+ const b=document.getElementById('pasteBox');b.style.display=b.style.display==='none'?'block':'none';
+ if(b.style.display==='block')document.getElementById('pasteArea').focus();
+}
+function renderImportPreview(rows,source){
+ const st=document.getElementById('importStatus'),pv=document.getElementById('importPreview');
+ if(!rows.length){st.textContent=(source||'Veri')+' — geçerli satır bulunamadı.';pv.innerHTML='';return;}
+ st.textContent=(source||'Veri')+' — '+rows.length+' satır algılandı. Aşağıdaki veriler aktarılacak:';
+ pv.innerHTML='<table><thead><tr><th>Profil Cinsi</th><th>Uzunluk (mm)</th><th>Adet</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+esc(x.profile)+'</td><td>'+x.length+'</td><td>'+x.qty+'</td></tr>').join('')+'</tbody></table>';
+}
+function showRawData(text){const v=document.getElementById('rawImportView');if(v)v.textContent=String(text||'').trim()||'Henüz veri yok.';}
+function previewImport(text,source){const rows=parseText(text);renderImportPreview(rows,source);return rows;}
+function applyPasteData(){
+ const text=document.getElementById('pasteArea').value;
+ if(!text.trim())return alert('Önce Excel / Notepad verisini alana yapıştırın.');
+ showRawData(text);if(importParsed(text,'Yapıştırılan veri')){renderImportPreview(parseText(text),'Aktarılan veri');}
+}
+function clearImportPreview(){document.getElementById('pasteArea').value='';document.getElementById('importPreview').innerHTML='';document.getElementById('importStatus').textContent='Henüz veri yapıştırılmadı.';showRawData('');}
 document.getElementById('file').addEventListener('change',e=>{
  const f=e.target.files[0]; if(!f)return;
- const r=new FileReader(); r.onload=()=>parseText(r.result).forEach(addRow); r.readAsText(f,'UTF-8');
+ const r=new FileReader();
+ r.onload=()=>{document.getElementById('pasteBox').style.display='block';document.getElementById('pasteArea').value=r.result;showRawData(r.result);previewImport(r.result,f.name);importParsed(r.result,f.name);e.target.value='';};
+ r.onerror=()=>alert('Dosya okunamadı.');
+ r.readAsText(f,'UTF-8');
 });
+function printPDF(){
+ refreshProductionVisibility();
+ const isiOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ if(isiOS){
+   // Safari/iOS'ta baskı çağrısını doğrudan kullanıcı tıklaması içinde çalıştır.
+   setTimeout(()=>window.print(),50);
+ }else window.print();
+}
 
 function clearRows(){tbody.innerHTML='';for(let i=0;i<3;i++)addRow();document.getElementById('plans').innerHTML='<div class="empty">Henüz kesim planı oluşturulmadı.</div>';document.getElementById('summary').innerHTML='';}
 
