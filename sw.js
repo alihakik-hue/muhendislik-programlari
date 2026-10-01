@@ -1,4 +1,4 @@
-const CACHE='muhendislik-v3-profil-v22-master-cati-v10-6-20260929';
+const CACHE='muhendislik-v3-profil-v23-artik-duzeltildi-cati-v10-6-20261001';
 const CORE=['./','./index.html','./manifest.webmanifest','./apps/hangar/index.html','./apps/profil-kesim/index.html','./apps/plaka-nesting/index.html','./apps/statik/index.html','./apps/cati-metraj/index.html'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));

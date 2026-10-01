@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hadde Mamulü Profil Kesim Optimizasyonu — V20</title>
+<title>Hadde Mamulü Profil Kesim Optimizasyonu — V23</title>
 <style>
 :root{--bg:#f4f6f8;--card:#fff;--line:#d8dee5;--text:#17212b;--muted:#64707d;--accent:#145ea8;--danger:#b42318}
 *{box-sizing:border-box}
@@ -54,7 +54,7 @@ td input{min-width:90px}
 </head>
 <body>
 <header>
-  <h1>Hadde Mamulü Profil Kesim Optimizasyonu</h1>
+  <h1>Hadde Mamulü Profil Kesim Optimizasyonu — V23</h1>
   <p>Profil bazında kesim planı • Poz takibi • Artık/Fire hesabı</p>
 </header>
 
@@ -251,7 +251,7 @@ function printMacPDF(){
   `;
 
   var html='<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kesim Planı PDF</title><style>'+css+'</style></head><body>'+
-    '<h1>Hadde Mamulü Profil Kesim Optimizasyonu</h1>'+
+    '<h1>Hadde Mamulü Profil Kesim Optimizasyonu — V23</h1>'+
     '<div class="summary">'+summary.innerHTML+'</div>'+
     plansClone.innerHTML+
     '<div id="iosHelp" style="margin-top:20px;padding:12px;border:1px solid #bbb;border-radius:8px;font-size:13px"><b>iPhone / iPad:</b> Yazdırma ekranı otomatik açılmazsa Safari Paylaş düğmesine basın → Yazdır → önizlemeyi iki parmakla büyütün → Paylaş → Dosyalara Kaydet.</div>'+
@@ -336,7 +336,7 @@ function buildCutPlanCanvas(model){
   cards.forEach((c,i)=>{const cw=(inner-24)/3,x=pad+i*(cw+12);roundRect(ctx,x,y,cw,82,10,'#f7f9fc','#cfd8e3');ctx.fillStyle='#5b6672';ctx.font='600 14px Arial';ctx.fillText(c[0],x+14,y+24);ctx.fillStyle='#17212b';ctx.font='700 23px Arial';ctx.fillText(c[1],x+14,y+57);});y+=115;
   for(const [profile,bars] of Object.entries(groups)){
     ctx.fillStyle='#17212b';ctx.font='700 19px Arial';ctx.fillText(profile+' — DOĞRUDAN KESİM GÖRSELLERİ',pad,y);y+=28;
-    bars.forEach((b,idx)=>{const waste=Math.max(0,model.stock-b.used);ctx.fillStyle='#34404d';ctx.font='600 13px Arial';ctx.fillText((idx+1)+'. Hammadde '+model.stock+' mm — Kullanılan '+b.used.toFixed(1)+' mm — Artık '+waste.toFixed(1)+' mm',pad,y);y+=12;
+    bars.forEach((b,idx)=>{const waste=Math.max(0,model.stock-b.used);ctx.fillStyle='#34404d';ctx.font='600 13px Arial';ctx.fillText(b.no+'. Hammadde '+model.stock+' mm — Kullanılan '+b.used.toFixed(1)+' mm — Artık '+waste.toFixed(1)+' mm',pad,y);y+=12;
       let x=pad;const bh=barH;ctx.lineWidth=1.5;
       b.parts.forEach((part,j)=>{let pw=Math.max(5,inner*(part.length/model.stock));ctx.fillStyle='#cfe3f6';ctx.fillRect(x,y,pw,bh);ctx.strokeStyle='#17212b';ctx.strokeRect(x,y,pw,bh);ctx.fillStyle='#17212b';ctx.font='700 13px Arial';const label=(part.poz||'-')+' / '+part.length;if(pw>55)ctx.fillText(label,x+7,y+32);x+=pw;if(j<b.parts.length-1&&model.kerf>0){let kw=Math.max(2,inner*(model.kerf/model.stock));ctx.fillStyle='#666';ctx.fillRect(x,y,kw,bh);x+=kw;}});
       if(waste>0){let ww=Math.max(5,inner*(waste/model.stock));ctx.fillStyle='#ececec';ctx.fillRect(x,y,ww,bh);ctx.strokeStyle='#17212b';ctx.strokeRect(x,y,ww,bh);ctx.fillStyle='#444';ctx.font='700 12px Arial';if(ww>70)ctx.fillText('ARTIK '+waste.toFixed(0),x+6,y+32);}
@@ -368,7 +368,7 @@ function clearRows(){tbody.innerHTML='';for(let i=0;i<3;i++)addRow();document.ge
 
 function packPieces(pieces,stock,kerf){
  const a=pieces.slice().sort((x,y)=>y.length-x.length),bars=[];
- a.forEach(p=>{let bi=-1,br=Infinity;bars.forEach((b,i)=>{const e=(b.parts.length?kerf:0)+p.length,r=stock-b.used-e;if(r>=-1e-9&&r<br){bi=i;br=r;}});if(bi<0)bars.push({parts:[p],used:p.length});else{const b=bars[bi];b.used+=(b.parts.length?kerf:0)+p.length;b.parts.push(p);}});
+ a.forEach(p=>{let bi=-1,br=Infinity;bars.forEach((b,i)=>{if(b.parts[0].profile!==p.profile)return;const e=(b.parts.length?kerf:0)+p.length,r=stock-b.used-e;if(r>=-1e-9&&r<br){bi=i;br=r;}});if(bi<0)bars.push({parts:[p],used:p.length});else{const b=bars[bi];b.used+=(b.parts.length?kerf:0)+p.length;b.parts.push(p);}});
  return bars;
 }
 function combos(a,k){const o=[];function f(s,p){if(p.length===k){o.push(p.slice());return;}for(let i=s;i<=a.length-(k-p.length);i++){p.push(a[i]);f(i+1,p);p.pop();}}f(0,[]);return o;}
@@ -394,7 +394,21 @@ function findJoin(pool,target,maxJoins,allowance,minPiece){
 }
 function sequentialPlan(all,stock,kerf,joins,allowance,minPiece){
  const base=packPieces(all,stock,kerf).length;
- if(!joins)return{base,bars:packPieces(all,stock,kerf),direct:all.slice(),joinPlans:[],events:[],pool:[],remaining:[]};
+ if(!joins){
+   const bars=packPieces(all,stock,kerf),pool=[],events=[];
+   let wasteNo=0;
+   bars.forEach((bar,index)=>{
+     bar.no=index+1;
+     const w=Number((stock-bar.used).toFixed(3));
+     let scrap=null;
+     if(w>=minPiece){
+       scrap={id:`A${++wasteNo}`,no:wasteNo,profile:bar.parts[0].profile,length:w,source:`${wasteNo} ATIK`};
+       pool.push(scrap);
+     }
+     events.push({type:"direct",bar,scrap});
+   });
+   return{base,bars,direct:all.slice(),joinPlans:[],events,pool,remaining:[]};
+ }
 
  const pending=all.slice().sort((a,b)=>b.length-a.length),bars=[],pool=[],joinPlans=[],events=[];
  let wasteNo=0,produced=0,barNo=0;
@@ -427,6 +441,7 @@ function sequentialPlan(all,stock,kerf,joins,allowance,minPiece){
    while(true){
      let pick=-1;
      for(let i=0;i<pending.length;i++){
+       if(parts.length && pending[i].profile!==parts[0].profile)continue;
        const e=(parts.length?kerf:0)+pending[i].length;
        if(used+e<=stock+1e-9){pick=i;break;}
      }
@@ -442,7 +457,7 @@ function sequentialPlan(all,stock,kerf,joins,allowance,minPiece){
  }
  return{base,bars,direct:bars.flatMap(b=>b.parts),joinPlans,events,pool,remaining:pending};
 }
-function poolTxt(p){return p.length?p.map(x=>`${x.no} ATIK ${x.length.toFixed(0)} mm`).join(' + '):'BOŞ';}
+function poolTxt(p){return p.length?p.map(x=>`${x.no} ATIK (${esc(x.profile)}) ${x.length.toFixed(0)} mm`).join(' + '):'BOŞ';}
 
 function renderDirectVisuals(r,stock,kerf,root){
  const groups={};
@@ -459,7 +474,7 @@ function renderDirectVisuals(r,stock,kerf,root){
      const ev=r.events.find(e=>e.type==="direct"&&e.bar===b);
      const scrap=ev&&ev.scrap;
      const d=document.createElement('div');d.className='bar';
-     d.innerHTML=`<div class="bar-title">${i+1}. Hammadde — ${stock} mm — Kullanılan ${b.used.toFixed(1)} mm — Artık ${w.toFixed(1)} mm${scrap?` (${scrap.no} ATIK)`:''}</div>`;
+     d.innerHTML=`<div class="bar-title">${b.no}. Hammadde — ${stock} mm — Kullanılan ${b.used.toFixed(1)} mm — Artık ${w.toFixed(1)} mm${scrap?` (${scrap.no} ATIK)`:''}</div>`;
      const t=document.createElement('div');t.className='track';
      b.parts.forEach((q,j)=>{
        const s=document.createElement('div');s.className='seg cut';
@@ -498,7 +513,7 @@ function renderProduction(r,stock,kerf,root){
    const tr=document.createElement('tr');
    if(ev.type==="direct"){
      const b=ev.bar;
-     tr.innerHTML=`<td><b>DOĞRUDAN KESİM</b></td><td>${stock} mm / Hammadde ${b.no}</td><td>${b.parts.map(p=>`${esc(p.poz||'-')} ${p.length}`).join(' + ')}</td><td>${ev.scrap?`${ev.scrap.no} ATIK — ${ev.scrap.length.toFixed(0)} mm`:'—'}</td><td>—</td><td>${b.parts.length} adet</td><td>—</td>`;
+     tr.innerHTML=`<td><b>DOĞRUDAN KESİM</b></td><td>${esc(b.parts[0].profile)} / ${stock} mm / Hammadde ${b.no}</td><td>${b.parts.map(p=>`${esc(p.poz||'-')} ${p.length}`).join(' + ')}</td><td>${ev.scrap?`${ev.scrap.no} ATIK — ${ev.scrap.length.toFixed(0)} mm`:'—'}</td><td>—</td><td>${b.parts.length} adet</td><td>—</td>`;
    }else{
      const p=ev.data;
      tr.innerHTML=`<td><b>EKLEME</b></td><td>${p.items.map(x=>`${x.no} ATIK`).join(' + ')}</td><td>—</td><td>Önce: ${poolTxt(p.before)}</td><td>${p.items.map(x=>`${x.length.toFixed(0)}`).join(' + ')} = ${p.items.reduce((s,x)=>s+x.length,0).toFixed(0)} mm</td><td>${esc(p.target.poz||'-')} ${p.target.length} mm</td><td>${p.newWaste?`${p.newWaste.no} ATIK — ${p.newWaste.length.toFixed(0)} mm`:'—'}</td>`;
@@ -509,7 +524,7 @@ function renderProduction(r,stock,kerf,root){
 }
 function drawJoinCards(r,root){
  if(!r.joinPlans.length)return;const g=document.createElement('div');g.className='group';g.innerHTML='<h3>EKLEME DETAYLARI</h3>';
- r.joinPlans.forEach((p,i)=>{const d=document.createElement('div');d.className='joinbox';d.innerHTML=`<b>${i+1}. Ekleme (${p.joins} ekli) → ${esc(p.target.poz||'-')} ${p.target.length} mm</b><div class="joinline">${p.items.map((x,j)=>`<div class="joinseg">${x.no} ATIK<br>${x.length.toFixed(0)} mm</div>${j<p.items.length-1?'<div class="joinmark">EK YERİ</div>':''}`).join('')}</div><div class="small">${p.items.map(x=>x.length.toFixed(0)).join(' + ')} − ${p.target.length} = <b>${p.remainder.toFixed(0)} mm</b>${p.newWaste?` → ${p.newWaste.no} ATIK`:''}</div><div class="small">Sonraki havuz: ${poolTxt(p.after)}</div>`;g.appendChild(d);});root.appendChild(g);
+ r.joinPlans.forEach((p,i)=>{const d=document.createElement('div');d.className='joinbox';d.innerHTML=`<b>${i+1}. Ekleme (${p.joins} ekli) — ${esc(p.target.profile)} → ${esc(p.target.poz||'-')} ${p.target.length} mm</b><div class="joinline">${p.items.map((x,j)=>`<div class="joinseg">${x.no} ATIK<br>${x.length.toFixed(0)} mm</div>${j<p.items.length-1?'<div class="joinmark">EK YERİ</div>':''}`).join('')}</div><div class="small">${p.items.map(x=>x.length.toFixed(0)).join(' + ')} − ${p.target.length} = <b>${p.remainder.toFixed(0)} mm</b>${p.newWaste?` → ${p.newWaste.no} ATIK`:''}</div><div class="small">Sonraki havuz: ${poolTxt(p.after)}</div>`;g.appendChild(d);});root.appendChild(g);
 }
 function calcWasteReport(r,stock){
   // Nihai artık: kullanılmamış artık havuzu + 100 mm altındaki geri kullanılamayan artıklar.
