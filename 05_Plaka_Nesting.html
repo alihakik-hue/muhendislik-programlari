@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Plaka Nesting Optimizasyonu V7</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#17202a;--muted:#667085;--line:#d9dee7;--accent:#2457c5;--bad:#b42318;--good:#067647}
+*{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:#17202a;color:white;padding:18px 20px} header h1{margin:0;font-size:22px} header p{margin:6px 0 0;color:#cbd5e1;font-size:13px}
+main{max-width:1400px;margin:auto;padding:16px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 1px 3px #0000000c}
+h2{font-size:17px;margin:0 0 12px} h3{font-size:15px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:7px;border-bottom:1px solid #e7eaf0;text-align:left;vertical-align:middle}
+input,select,button{font:inherit}input,select{width:100%;padding:7px;border:1px solid #cbd2dc;border-radius:7px;background:white}
+button{border:0;border-radius:8px;padding:9px 12px;cursor:pointer;background:#e7ebf2;color:#17202a;font-weight:700}
+button.primary{background:var(--accent);color:white}button.danger{background:#fee4e2;color:#b42318}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.settings{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.settings label{font-size:12px;color:var(--muted)}.settings input,.settings select{margin-top:4px}
+.full{grid-column:1/-1}.summary{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0}.metric{background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:10px}.metric b{display:block;font-size:18px}.metric span{font-size:11px;color:var(--muted)}
+.sheet{margin:16px 0;border-top:1px solid var(--line);padding-top:12px}.sheet-head{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}.sheet-head b{font-size:14px}.sheet-head span{font-size:12px;color:var(--muted)}
+canvas{width:100%;height:auto;border:1px solid #9aa4b2;background:white;border-radius:5px}.note{font-size:12px;color:var(--muted);line-height:1.45}.status{margin-top:10px;font-size:13px}.report-wrap{margin:16px 0 22px}.report-title{font-size:15px;margin:0 0 8px}.report-total{font-size:12px;color:var(--muted);margin-top:8px}.recommend{margin-top:14px;padding:12px;border:1px solid #d8dee8;border-radius:10px;background:#fbfcfe}.recommend h3{margin:0 0 10px}.best{font-weight:700}.dxfbox{margin-top:12px;padding:12px;border:1px dashed #aeb7c4;border-radius:10px;background:#fafbfc}.dxf-preview{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:10px}.dxf-card{border:1px solid #dde2ea;border-radius:8px;padding:8px;background:white}.dxf-card canvas{height:130px;object-fit:contain}.dxf-card input{margin-top:6px}.ok{color:var(--good)}.err{color:var(--bad)}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.settings{grid-template-columns:1fr 1fr}.summary{grid-template-columns:1fr 1fr}}
+@media print{header,.input-area,.toolbar,.note{display:none!important}body{background:white}.card{box-shadow:none;border:0}.sheet{break-inside:avoid;page-break-inside:avoid}.full{padding:0}}
+</style>
+<link rel="stylesheet" href="desktop.css"><link rel="manifest" href="manifest.webmanifest"></head>
+<body>
+<header><h1>Plaka Nesting Optimizasyonu V7</h1><p>Farklı stok plakalar üzerinde parça yerleşimi • Safari / Chrome uyumlu • Tek HTML dosyası</p></header>
+<main><div class="dxfbox">
+<b>DXF Parça İçe Aktarma</b>
+<p class="note">1:1 mm, kapalı 2B DXF konturları kullanın. LWPOLYLINE, LINE, ARC ve CIRCLE desteklenir. Her dış kontur bir parçadır; iç delikler aynı parçada korunur.</p>
+<input id="dxfFiles" type="file" accept=".dxf" multiple onchange="importDXFFiles(this.files)">
+<div class="toolbar"><button onclick="transferDXFParts()">DXF PARÇALARINI LİSTEYE AKTAR</button><button onclick="clearDXF()">DXF'LERİ TEMİZLE</button></div>
+<div id="dxfStatus" class="status"></div>
+<div id="dxfPreview" class="dxf-preview"></div>
+</div>
+<div class="grid input-area">
+<section class="card">
+<h2>1. Stok Plakalar</h2>
+<table><thead><tr><th>Malzeme</th><th>Kalınlık</th><th>En</th><th>Boy</th><th>Adet</th><th></th></tr></thead><tbody id="stocks"></tbody></table>
+<div class="toolbar"><button onclick="addStock()">+ Stok Satırı</button></div>
+</section>
+<section class="card">
+<h2>2. Kesilecek Parçalar</h2>
+<table><thead><tr><th>Poz</th><th>Şekil</th><th>En / Ø</th><th>Boy</th><th>Adet</th><th></th></tr></thead><tbody id="parts"></tbody></table>
+<div class="toolbar"><button onclick="addPart()">+ Parça Satırı</button><button onclick="togglePaste()">📋 Kopyala / Yapıştır</button></div>
+<div id="pasteBox" style="display:none;margin-top:10px;padding:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px">
+<label style="font-size:12px;color:var(--muted)">Excel / Not Defteri verisini buraya yapıştırın:</label>
+<textarea id="pasteData" style="width:100%;min-height:130px;margin-top:6px;padding:8px;border:1px solid #cbd2dc;border-radius:7px;font:12px monospace" placeholder="P1	Dikdörtgen	400	650	8
+P2	Üçgen	350	500	6
+P3	Daire	280	280	5"></textarea>
+<div class="toolbar"><button class="primary" onclick="importPaste()">YAPIŞTIRILAN VERİYİ AKTAR</button><button onclick="$('#pasteData').value=''">Kutuyu Temizle</button></div>
+<p class="note">Kabul edilen sütun sırası: POZ | ŞEKİL | EN/ÇAP | BOY | ADET. Excel'den hücreleri doğrudan kopyalayıp yapıştırabilirsiniz. Ayraç olarak TAB, noktalı virgül veya virgül kullanılabilir. Şekil boş bırakılırsa Dikdörtgen kabul edilir.</p>
+</div>
+<p class="note">V2 geometrileri: dikdörtgen, üçgen, trapez ve daire. Üçgen/trapez optimizasyonunda şimdilik güvenli dış ölçü kutusu kullanılır.</p>
+</section>
+<section class="card full">
+<h2>3. Kesim Ayarları</h2>
+<div class="settings">
+<label>Parçalar arası boşluk (mm)<input id="gap" type="number" value="5" min="0"></label>
+<label>Kenar payı (mm)<input id="margin" type="number" value="10" min="0"></label>
+<label>Döndürme<select id="rotate"><option value="yes">0° / 90° izin ver</option><option value="no">Döndürme yok</option></select></label>
+<label>Minimum artık ölçüsü (mm)<input id="remnant" type="number" value="300" min="0"></label><label>Sac tipi<select id="sheetType"><option>Düz Plaka</option><option>Baklavalı Sac</option><option>Gözyaşı Plaka</option><option>Diğer</option></select></label>
+<label>Yeni sac malzemesi<input id="newMat" value="S235JR"></label>
+<label>Yeni sac kalınlığı (mm)<input id="newThk" type="number" value="10" min="0"></label>
+<label>Aday ebatlar (mm)<input id="candidateSizes" value="1000x2000;1250x2500;1500x3000;1500x6000;2000x4000;2000x6000"></label>
+</div>
+<div class="toolbar"><button class="primary" onclick="optimize()">MEVCUT STOKU OPTİMİZE ET</button><button class="primary" onclick="recommendGlobal()">EN UYGUN YENİ SAC EBADINI BUL</button><button onclick="window.print()">PDF / YAZDIR</button><button onclick="loadExample()">Örnek Veriyi Yükle</button><button onclick="clearAll()">Temizle</button></div>
+<div id="status" class="status"></div>
+</section>
+</div>
+
+<section class="card full" style="margin-top:14px">
+<h2>4. Optimizasyon Sonucu</h2>
+<div class="summary">
+<div class="metric"><b id="mSheets">0</b><span>Kullanılan plaka</span></div>
+<div class="metric"><b id="mParts">0</b><span>Yerleşen parça</span></div>
+<div class="metric"><b id="mUse">0%</b><span>Toplam kullanım</span></div>
+<div class="metric"><b id="mWaste">0%</b><span>Toplam fire</span></div>
+<div class="metric"><b id="mLeft">0</b><span>Yerleşemeyen parça</span></div>
+</div>
+<div id="globalRecommendation"></div><div id="stockReport"></div><div id="plans"><p class="note">Stok ve parçaları girip “OPTİMİZE ET” düğmesine basın.</p></div>
+</section>
+</main>
+<script src="dxf-import.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const escapeHTML=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+function stockRow(v={mat:'S235JR',t:10,w:1500,h:3000,q:1}){return `<tr><td><input value="${escapeHTML(v.mat)}"></td><td><input type="number" value="${v.t}"></td><td><input type="number" value="${v.w}"></td><td><input type="number" value="${v.h}"></td><td><input type="number" value="${v.q}" min="1"></td><td><button class="danger" onclick="this.closest('tr').remove()">×</button></td></tr>`}
+function partRow(v={pos:'P1',shape:'rect',w:300,h:500,q:1}){return `<tr><td><input value="${escapeHTML(v.pos)}"></td><td><select><option value="rect" ${v.shape==='rect'?'selected':''}>Dikdörtgen</option><option value="tri" ${v.shape==='tri'?'selected':''}>Üçgen</option><option value="trap" ${v.shape==='trap'?'selected':''}>Trapez</option><option value="circle" ${v.shape==='circle'?'selected':''}>Daire</option></select></td><td><input type="number" value="${v.w}"></td><td><input type="number" value="${v.h}"></td><td><input type="number" value="${v.q}" min="1"></td><td><button class="danger" onclick="this.closest('tr').remove()">×</button></td></tr>`}
+function addStock(v){$('#stocks').insertAdjacentHTML('beforeend',stockRow(v))}
+function addPart(v){$('#parts').insertAdjacentHTML('beforeend',partRow(v))}
+function clearAll(){dxfGeometryByPos={};clearDXF();$('#stocks').innerHTML='';$('#parts').innerHTML='';$('#plans').innerHTML='<p class="note">Veriler temizlendi.</p>';if($('#stockReport'))$('#stockReport').innerHTML='';if($('#globalRecommendation'))$('#globalRecommendation').innerHTML='';resetMetrics()}
+function loadExample(){clearAll();addStock({mat:'S235JR',t:10,w:1500,h:3000,q:2});addStock({mat:'S235JR',t:10,w:2000,h:4000,q:1});addPart({pos:'P1',shape:'rect',w:400,h:650,q:8});addPart({pos:'P2',shape:'tri',w:350,h:500,q:6});addPart({pos:'P3',shape:'circle',w:280,h:280,q:5});}
+function togglePaste(){let b=$('#pasteBox');b.style.display=b.style.display==='none'?'block':'none'}
+function normShape(v){v=(v||'').toString().trim().toLocaleLowerCase('tr-TR');if(!v)return 'rect';if(v.includes('üç')||v.includes('uc')||v==='tri'||v==='triangle')return 'tri';if(v.includes('trap'))return 'trap';if(v.includes('daire')||v.includes('circle')||v.includes('yuvar'))return 'circle';return 'rect'}
+function parseNum(v){if(v==null)return 0;v=String(v).trim().replace(/\s/g,'');if(v.includes(',')&&!v.includes('.'))v=v.replace(',','.');else v=v.replace(/,/g,'');return Number(v)||0}
+function importPaste(){
+ let raw=$('#pasteData').value.trim();if(!raw){$('#status').innerHTML='<span class="err">Yapıştırılacak veri bulunamadı.</span>';return}
+ let lines=raw.split(/\r?\n/).filter(x=>x.trim()),added=0,skipped=0;
+ lines.forEach((line,idx)=>{
+   let cols=line.includes('\t')?line.split('\t'):line.includes(';')?line.split(';'):line.split(',');cols=cols.map(x=>x.trim());
+   if(idx===0 && /poz|parça|parca/i.test(cols.join(' ')) && /adet|qty|miktar/i.test(cols.join(' ')))return;
+   let pos=cols[0]||('P'+(document.querySelectorAll('#parts tr').length+1));let shape=normShape(cols[1]);let w=parseNum(cols[2]);let h=parseNum(cols[3]);let q=Math.max(1,Math.floor(parseNum(cols[4])||1));
+   if(shape==='circle' && !h)h=w;
+   if(!w || (!h && shape!=='circle')){skipped++;return}
+   addPart({pos,shape,w,h,q});added++;
+ });
+ $('#status').innerHTML=`<span class="ok">${added} satır kesilecek parçalara aktarıldı.</span>${skipped?` <span class="err">${skipped} satır okunamadı.</span>`:''}`;
+}
+function readStocks(){let a=[];document.querySelectorAll('#stocks tr').forEach((r,ri)=>{let x=r.querySelectorAll('input');let q=+x[4].value||0,code='STK-'+String(ri+1).padStart(2,'0');for(let i=0;i<q;i++)a.push({mat:x[0].value,t:+x[1].value,w:+x[2].value,h:+x[3].value,id:a.length+1,stockCode:code,sourceQty:q})});return a.filter(s=>s.w>0&&s.h>0)}
+function polyArea(pts){let a=0;for(let i=0,j=pts.length-1;i<pts.length;j=i++)a+=(pts[j][0]*pts[i][1]-pts[i][0]*pts[j][1]);return Math.abs(a)/2}
+function readParts(){let a=[];document.querySelectorAll('#parts tr').forEach(r=>{let x=r.querySelectorAll('input'),shape=r.querySelector('select').value,q=+x[3].value||0,pos=x[0].value||'P?',geom=dxfGeometryByPos[pos]||null;let w=+x[1].value,h=shape==='circle'?w:+x[2].value;let area=shape==='circle'?Math.PI*w*w/4:shape==='tri'?w*h/2:shape==='trap'?w*h*.8:w*h;if(geom&&geom.kind==='poly')area=geom.area??polyArea(geom.pts);for(let i=0;i<q;i++)a.push({pos,shape,w,h,area,geom})});return a.filter(p=>p.w>0&&p.h>0)}
+function resetMetrics(){['mSheets','mParts','mLeft'].forEach(x=>$('#'+x).textContent='0');$('#mUse').textContent='0%';$('#mWaste').textContent='0%'}
+
+function normalizedPoly(p,rotated){
+ if(!(p.geom&&p.geom.kind==='poly'))return null;
+ let pts=p.geom.pts.map(q=>[q[0]-p.geom.minx,q[1]-p.geom.miny]);
+ if(rotated){pts=pts.map(q=>[q[1],p.geom.w-q[0]])}
+ let minx=Math.min(...pts.map(q=>q[0])),miny=Math.min(...pts.map(q=>q[1]));
+ return pts.map(q=>[q[0]-minx,q[1]-miny]);
+}
+function orient(a,b,c){return (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])}
+function segHit(a,b,c,d){
+ let o1=orient(a,b,c),o2=orient(a,b,d),o3=orient(c,d,a),o4=orient(c,d,b);
+ return ((o1>0&&o2<0)||(o1<0&&o2>0))&&((o3>0&&o4<0)||(o3<0&&o4>0));
+}
+function pointInPoly(pt,poly){
+ let ins=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){let xi=poly[i][0],yi=poly[i][1],xj=poly[j][0],yj=poly[j][1];let hit=((yi>pt[1])!=(yj>pt[1]))&&(pt[0]<(xj-xi)*(pt[1]-yi)/(yj-yi+1e-12)+xi);if(hit)ins=!ins}return ins
+}
+function worldPoly(item){
+ let pp=normalizedPoly(item,item.rot);if(!pp)return null;return pp.map(q=>[q[0]+item.x,q[1]+item.y]);
+}
+function polysOverlap(a,b,gap){
+ // conservative gap: expanded bounding-box precheck + exact edge/containment for actual polygons.
+ let A=worldPoly(a),B=worldPoly(b);if(!A||!B)return !(a.x+a.w+gap<=b.x||b.x+b.w+gap<=a.x||a.y+a.h+gap<=b.y||b.y+b.h+gap<=a.y);
+ let ax0=Math.min(...A.map(q=>q[0]))-gap,ax1=Math.max(...A.map(q=>q[0]))+gap,ay0=Math.min(...A.map(q=>q[1]))-gap,ay1=Math.max(...A.map(q=>q[1]))+gap;
+ let bx0=Math.min(...B.map(q=>q[0])),bx1=Math.max(...B.map(q=>q[0])),by0=Math.min(...B.map(q=>q[1])),by1=Math.max(...B.map(q=>q[1]));
+ if(ax1<=bx0||bx1<=ax0||ay1<=by0||by1<=ay0)return false;
+ for(let i=0;i<A.length;i++)for(let j=0;j<B.length;j++)if(segHit(A[i],A[(i+1)%A.length],B[j],B[(j+1)%B.length]))return true;
+ if(pointInPoly(A[0],B)||pointInPoly(B[0],A))return true;
+ let mid=P=>P.reduce((a,p)=>[a[0]+p[0]/P.length,a[1]+p[1]/P.length],[0,0]);if(pointInPoly(mid(A),B)||pointInPoly(mid(B),A))return true;
+ // when polygons don't intersect but are within requested gap, keep conservative bbox clearance
+ if(gap>0)return true;
+ return false;
+}
+function tryContourGrid(sheet,p,gap,margin,rot){
+ let opts=[false];if(rot)opts.push(true);
+ let step=Math.max(3,Math.min(20,gap||10),Math.sqrt(sheet.s.w*sheet.s.h/20000));
+ for(const rr of opts){
+   let w=rr?p.h:p.w,h=rr?p.w:p.h;
+   for(let y=margin;y+h<=sheet.s.h-margin+1e-6;y+=step){
+     for(let x=margin;x+w<=sheet.s.w-margin+1e-6;x+=step){
+       let cand={...p,x,y,w,h,rot:rr};
+       let hit=sheet.items.some(it=>polysOverlap(cand,it,gap));
+       if(!hit){sheet.items.push(cand);return true}
+     }
+   }
+ }
+ return false;
+}
+
+function tryShelf(sheet,p,gap,margin,rot){
+ if((p.geom&&p.geom.kind==='poly')||sheet.items.some(it=>it.geom&&it.geom.kind==='poly'))return tryContourGrid(sheet,p,gap,margin,rot);
+ let opts=[{w:p.w,h:p.h,r:false}];if(rot&&p.w!==p.h)opts.push({w:p.h,h:p.w,r:true});
+ for(const o of opts){
+   for(let ri=0;ri<sheet.rows.length;ri++){let row=sheet.rows[ri];if(o.h<=row.h && row.x+o.w<=sheet.s.w-margin){let pl={...p,x:row.x,y:row.y,w:o.w,h:o.h,rot:o.r};row.x+=o.w+gap;sheet.items.push(pl);return true}}
+   let y=margin;if(sheet.rows.length)y=Math.max(...sheet.rows.map(r=>r.y+r.h+gap));
+   if(y+o.h<=sheet.s.h-margin && margin+o.w<=sheet.s.w-margin){sheet.rows.push({x:margin+o.w+gap,y,h:o.h});sheet.items.push({...p,x:margin,y,w:o.w,h:o.h,rot:o.r});return true}
+ }
+ return false
+}
+
+
+let dxfImported=[]; let dxfGeometryByPos={}; let dxfSerial=0;
+function dxfPairs(txt){
+ let lines=txt.replace(/\r/g,'').split('\n'),a=[];
+ for(let i=0;i+1<lines.length;i+=2)a.push([lines[i].trim(),lines[i+1].trim()]);
+ return a;
+}
+async function importDXFFiles(files){
+ dxfImported=[]; let errors=[];
+ for(const f of files){
+   try{let txt=await f.text();let ps=parseDXFText(txt,f.name);if(ps.length)dxfImported.push(...ps);else errors.push(f.name)}
+   catch(e){errors.push(f.name+': '+e.message)}
+ }
+ dxfImported.forEach((p,i)=>{p.pos='DXF-P'+(++dxfSerial);p.qty=1});
+ renderDXFPreview();
+ $('#dxfStatus').innerHTML=`<span class="${dxfImported.length?'ok':'err'}">${dxfImported.length} kontur/parça bulundu.</span>${errors.length?' <span class="err">Okunamayan: '+errors.map(escapeHTML).join(', ')+'</span>':''}`;
+}
+function renderDXFPreview(){
+ let host=$('#dxfPreview');host.innerHTML='';
+ dxfImported.forEach((p,i)=>{
+   let d=document.createElement('div');d.className='dxf-card';
+   d.innerHTML=`<b>${p.pos}</b><div class="note">${escapeHTML(p.file)}<br>${p.w.toFixed(1)} × ${p.h.toFixed(1)} mm • ${p.kind}</div><canvas width="300" height="160"></canvas><label class="note">Adet<input type="number" min="1" value="${p.qty}" onchange="dxfImported[${i}].qty=Math.max(1,+this.value||1)"></label>`;
+   host.appendChild(d);drawDXFPreview(d.querySelector('canvas'),p);
+ });
+}
+function drawDXFPreview(c,p){
+ let ctx=c.getContext('2d'),pad=15,s=Math.min((c.width-2*pad)/p.w,(c.height-2*pad)/p.h);ctx.clearRect(0,0,c.width,c.height);ctx.strokeStyle='#2457c5';ctx.lineWidth=2;ctx.beginPath();
+ if(p.kind==='circle'){ctx.arc(c.width/2,c.height/2,Math.min(p.w,p.h)*s/2,0,Math.PI*2)}
+ else if(p.kind==='poly'){p.pts.forEach((q,k)=>{let x=pad+(q[0]-p.minx)*s,y=c.height-pad-(q[1]-p.miny)*s;k?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath()}
+ else if(p.lines){p.lines.forEach(l=>{ctx.moveTo(pad+(l.pts[0][0]-p.minx)*s,c.height-pad-(l.pts[0][1]-p.miny)*s);ctx.lineTo(pad+(l.pts[1][0]-p.minx)*s,c.height-pad-(l.pts[1][1]-p.miny)*s)})}
+ if(p.holes)for(let hole of p.holes){hole.forEach((q,k)=>{let x=pad+(q[0]-p.minx)*s,y=c.height-pad-(q[1]-p.miny)*s;k?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath();}
+ ctx.stroke();
+}
+function transferDXFParts(){
+ if(!dxfImported.length){$('#dxfStatus').innerHTML='<span class="err">Önce DXF dosyası seçin.</span>';return}
+ dxfImported.filter(p=>!p.transferred).forEach(p=>{
+   p.transferred=true;dxfGeometryByPos[p.pos]=p;
+   addPart({pos:p.pos,shape:p.kind==='circle'?'circle':'rect',w:p.w,h:p.h,q:p.qty||1});
+ });
+ $('#dxfStatus').innerHTML='<span class="ok">DXF parçaları gerçek kontur bilgisiyle listeye aktarıldı. V7 kesim planında gerçek polygon konturu kullanılır.</span>';
+}
+function clearDXF(){dxfImported=[];$('#dxfPreview').innerHTML='';$('#dxfStatus').innerHTML='';$('#dxfFiles').value=''}
+
+function parseCandidateSizes(){
+ let raw=$('#candidateSizes').value||'';
+ let seen={},out=[];
+ raw.split(/[;,\n]+/).forEach(v=>{
+   let m=v.trim().match(/(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)/);
+   if(m){let w=+m[1],h=+m[2],k=w+'x'+h;if(w>0&&h>0&&!seen[k]){seen[k]=1;out.push({w,h})}}
+ });
+ return out;
+}
+function simulateSingleSize(size,parts,gap,margin,rot){
+ let remaining=parts.map(p=>({...p})).sort((a,b)=>Math.max(b.w,b.h)-Math.max(a.w,a.h)||b.area-a.area);
+ let sheets=[],unplaced=[];
+ for(const p of remaining){
+   let placed=false;
+   for(const sh of sheets){if(tryShelf(sh,p,gap,margin,rot)){placed=true;break}}
+   if(!placed){
+     let fits=(p.w+2*margin<=size.w&&p.h+2*margin<=size.h)||(rot&&p.h+2*margin<=size.w&&p.w+2*margin<=size.h);
+     if(fits){
+       let sh={s:{w:size.w,h:size.h,mat:$('#newMat').value,t:+$('#newThk').value,stockCode:'YENİ'},rows:[],items:[]};
+       sheets.push(sh); placed=tryShelf(sh,p,gap,margin,rot);
+     }
+   }
+   if(!placed)unplaced.push(p);
+ }
+ let partArea=sheets.reduce((z,sh)=>z+sh.items.reduce((q,p)=>q+p.area,0),0);
+ let purchaseArea=sheets.length*size.w*size.h;
+ return {size,sheets,unplaced,partArea,purchaseArea,eff:purchaseArea?100*partArea/purchaseArea:0,waste:purchaseArea-partArea};
+}
+
+function simulateExistingStock(parts,gap,margin,rot){
+ let stocks=readStocks(), original=stocks.map(s=>({...s}));
+ stocks.sort((a,b)=>a.w*a.h-b.w*b.h);
+ let sheets=[],left=[];
+ let sorted=parts.map(p=>({...p})).sort((a,b)=>Math.max(b.w,b.h)-Math.max(a.w,a.h)||b.area-a.area);
+ for(const p of sorted){
+   let placed=false;
+   let order=[...sheets].sort((a,b)=>(a.s.w*a.s.h-a.items.reduce((z,i)=>z+i.area,0))-(b.s.w*b.s.h-b.items.reduce((z,i)=>z+i.area,0)));
+   for(const sh of order){if(tryShelf(sh,p,gap,margin,rot)){placed=true;break}}
+   if(!placed){
+     let idx=stocks.findIndex(s=>(p.w+2*margin<=s.w&&p.h+2*margin<=s.h)||(rot&&p.h+2*margin<=s.w&&p.w+2*margin<=s.h));
+     if(idx>=0){let s=stocks.splice(idx,1)[0],sh={s,rows:[],items:[]};sheets.push(sh);placed=tryShelf(sh,p,gap,margin,rot)}
+   }
+   if(!placed)left.push(p);
+ }
+ let purchaseArea=sheets.reduce((z,sh)=>z+sh.s.w*sh.s.h,0);
+ let partArea=sheets.reduce((z,sh)=>z+sh.items.reduce((q,p)=>q+p.area,0),0);
+ let byStock={};
+ sheets.forEach(sh=>{
+   let k=sh.s.stockCode||`${sh.s.w}x${sh.s.h}`;
+   if(!byStock[k])byStock[k]={code:k,w:sh.s.w,h:sh.s.h,mat:sh.s.mat,t:sh.s.t,count:0};
+   byStock[k].count++;
+ });
+ return {sheets,left,purchaseArea,partArea,eff:purchaseArea?100*partArea/purchaseArea:0,waste:purchaseArea-partArea,byStock,original};
+}
+function simulateExistingPlusNew(size,parts,gap,margin,rot){
+ // First consume the available stock, then buy the candidate size only for the remainder.
+ let ex=simulateExistingStock(parts,gap,margin,rot);
+ if(!ex.left.length)return {size,newSheets:[],existing:ex,unplaced:[],partArea:ex.partArea,totalSheetArea:ex.purchaseArea,newArea:0,eff:ex.eff,waste:ex.waste};
+ let nw=simulateSingleSize(size,ex.left,gap,margin,rot);
+ let totalSheetArea=ex.purchaseArea+nw.purchaseArea;
+ let partArea=ex.partArea+nw.partArea;
+ return {size,newSheets:nw.sheets,existing:ex,unplaced:nw.unplaced,partArea,totalSheetArea,newArea:nw.purchaseArea,eff:totalSheetArea?100*partArea/totalSheetArea:0,waste:totalSheetArea-partArea};
+}
+
+function recommendGlobal(){
+ let parts=readParts(),sizes=parseCandidateSizes(),gap=+$('#gap').value||0,margin=+$('#margin').value||0,rot=$('#rotate').value==='yes';
+ let host=$('#globalRecommendation');
+ if(!parts.length||!sizes.length){host.innerHTML='<div class="recommend err">Parça listesi ve en az bir aday sac ebadı gerekli.</div>';return}
+ let fresh=sizes.map(s=>simulateSingleSize(s,parts,gap,margin,rot)).filter(r=>r.unplaced.length===0);
+ fresh.sort((a,b)=>a.purchaseArea-b.purchaseArea || b.eff-a.eff || a.sheets.length-b.sheets.length);
+
+ let existing=simulateExistingStock(parts,gap,margin,rot);
+ let mixed=sizes.map(s=>simulateExistingPlusNew(s,parts,gap,margin,rot)).filter(r=>r.unplaced.length===0);
+ mixed.sort((a,b)=>a.newArea-b.newArea || a.totalSheetArea-b.totalSheetArea || b.eff-a.eff);
+
+ let existingRows=Object.values(existing.byStock).map(g=>`<tr><td>${g.code}</td><td>${escapeHTML(g.mat)}</td><td>${g.t} mm</td><td>${g.w} × ${g.h}</td><td><b>${g.count}</b></td></tr>`).join('');
+ let existingSummary=existing.sheets.length
+   ? `<h3>Mevcut Stok Değerlendirmesi</h3><div style="overflow-x:auto"><table><thead><tr><th>Stok</th><th>Malzeme</th><th>Kalınlık</th><th>Ebat</th><th>Kullanılan</th></tr></thead><tbody>${existingRows}</tbody></table></div><p class="report-total">Mevcut stoktan kullanılan: <b>${existing.sheets.length}</b> plaka • Yerleşen parça: <b>${parts.length-existing.left.length}/${parts.length}</b> • Stok üzerindeki verim: <b>${existing.eff.toFixed(1)}%</b></p>`
+   : `<h3>Mevcut Stok Değerlendirmesi</h3><p class="note">Girilen mevcut stoklardan bu parçalara uygun plaka bulunamadı.</p>`;
+
+ let freshRows=fresh.map((r,i)=>`<tr><td>${i===0?'<span class="best">En iyi yeni sac</span>':'Alternatif '+i}</td><td>${r.size.w} × ${r.size.h}</td><td>${r.sheets.length}</td><td>${(r.purchaseArea/1e6).toFixed(2)} m²</td><td>${(r.waste/1e6).toFixed(2)} m²</td><td>${r.eff.toFixed(1)}%</td></tr>`).join('');
+
+ let mixRows=mixed.map((r,i)=>{
+   let buy=r.newSheets.length?`${r.size.w} × ${r.size.h} / ${r.newSheets.length} adet`:'Yeni sac gerekmiyor';
+   return `<tr><td>${i===0?'<span class="best">ÖNERİLEN</span>':'Alternatif '+i}</td><td>${r.existing.sheets.length} adet</td><td>${buy}</td><td>${(r.newArea/1e6).toFixed(2)} m²</td><td>${(r.totalSheetArea/1e6).toFixed(2)} m²</td><td>${(r.waste/1e6).toFixed(2)} m²</td><td>${r.eff.toFixed(1)}%</td></tr>`;
+ }).join('');
+
+ let conclusion='';
+ if(existing.left.length===0){
+   conclusion=`<p><b>Sonuç:</b> Mevcut stok bütün parçaları karşılıyor. Bu nedenle malzeme alanı açısından yeni sac satın alma zorunluluğu görünmüyor. Yine de aşağıda yalnız yeni sac kullanılması halinde alternatif global ebatlar karşılaştırılmıştır.</p>`;
+ } else if(mixed.length){
+   let b=mixed[0];
+   conclusion=`<p><b>Birleşik öneri:</b> Önce mevcut stoktan <b>${b.existing.sheets.length} plaka</b> değerlendiriliyor; kalan parçalar için <b>${b.newSheets.length} adet ${b.size.w} × ${b.size.h} mm</b> yeni ${$('#sheetType').value.toLowerCase()} öneriliyor. Böylece öneri mevcut stoğu yok saymadan hesaplanıyor.</p>`;
+ }
+ host.innerHTML=`<div class="recommend"><h3>Global Sac + Mevcut Stok Birleşik Önerisi — ${$('#sheetType').value}</h3>${conclusion}${existingSummary}<h3 style="margin-top:16px">Mevcut Stok + Yeni Sac Alternatifleri</h3><div style="overflow-x:auto"><table><thead><tr><th>Sonuç</th><th>Mevcut stok kullanımı</th><th>Yeni alınacak sac</th><th>Yeni alım</th><th>Toplam işlenen alan</th><th>Fire</th><th>Verim</th></tr></thead><tbody>${mixRows||'<tr><td colspan="7">Uygun birleşik çözüm bulunamadı.</td></tr>'}</tbody></table></div><h3 style="margin-top:16px">Sadece Yeni Sac Alınırsa</h3><div style="overflow-x:auto"><table><thead><tr><th>Sonuç</th><th>Global Ebat</th><th>Adet</th><th>Satın Alınan</th><th>Fire</th><th>Verim</th></tr></thead><tbody>${freshRows||'<tr><td colspan="6">Aday ebatlardan hiçbiri bütün parçaları karşılamıyor.</td></tr>'}</tbody></table></div><p class="note">Birleşik öneri mevcut stokları önce kullanır, kalan parçaları aday yeni sac ebatlarında test eder. V5 hâlâ shelf/dikdörtgensel yerleşim yaklaşımını kullanır; gerçek DXF kontur nesting geldiğinde düzensiz parçalar için sonuç daha hassas olacaktır.</p></div>`;
+}
+function optimize(){
+ let stocks=readStocks(),allStocks=stocks.map(s=>({...s})),parts=readParts(),gap=+$('#gap').value||0,margin=+$('#margin').value||0,rot=$('#rotate').value==='yes';
+ if(!stocks.length||!parts.length){$('#status').innerHTML='<span class="err">En az bir stok plaka ve bir parça girin.</span>';return}
+ parts.sort((a,b)=>Math.max(b.w,b.h)-Math.max(a.w,a.h)||b.area-a.area);
+ stocks.sort((a,b)=>a.w*a.h-b.w*b.h);
+ let sheets=[],left=[];
+ for(const p of parts){
+   let placed=false;
+   // Önce açık plakalardaki boşluğu doldur.
+   let order=[...sheets].sort((a,b)=>(a.s.w*a.s.h-a.items.reduce((z,i)=>z+i.area,0))-(b.s.w*b.s.h-b.items.reduce((z,i)=>z+i.area,0)));
+   for(const sh of order){if(tryShelf(sh,p,gap,margin,rot)){placed=true;break}}
+   if(!placed){
+     let idx=stocks.findIndex(s=>(p.w+2*margin<=s.w&&p.h+2*margin<=s.h)||(rot&&p.h+2*margin<=s.w&&p.w+2*margin<=s.h));
+     if(idx>=0){let s=stocks.splice(idx,1)[0],sh={s,rows:[],items:[]};sheets.push(sh);placed=tryShelf(sh,p,gap,margin,rot)}
+   }
+   if(!placed)left.push(p)
+ }
+ render(sheets,left,allStocks);
+}
+function render(sheets,left,allStocks){
+ let box=$('#plans');box.innerHTML='';let totalSheet=0,totalPart=0,count=0;
+ renderStockReport(sheets,allStocks||[]);
+ sheets.forEach((sh,k)=>{
+   let area=sh.s.w*sh.s.h,used=sh.items.reduce((z,p)=>z+p.area,0);totalSheet+=area;totalPart+=used;count+=sh.items.length;
+   let use=100*used/area;
+   let el=document.createElement('div');el.className='sheet';
+   el.innerHTML=`<div class="sheet-head"><b>${sh.s.stockCode || 'STK'} / PLAKA ${k+1} — ${escapeHTML(sh.s.mat)} / ${sh.s.t} mm — ${sh.s.w} × ${sh.s.h} mm</b><span>Kullanım: ${use.toFixed(1)}% • Fire: ${(100-use).toFixed(1)}% • ${sh.items.length} parça</span></div><canvas width="1100" height="${Math.max(300,Math.round(1100*sh.s.h/sh.s.w))}"></canvas>`;
+   box.appendChild(el);draw(el.querySelector('canvas'),sh);
+ });
+ let use=totalSheet?100*totalPart/totalSheet:0;$('#mSheets').textContent=sheets.length;$('#mParts').textContent=count;$('#mUse').textContent=use.toFixed(1)+'%';$('#mWaste').textContent=(100-use).toFixed(1)+'%';$('#mLeft').textContent=left.length;
+ $('#status').innerHTML=left.length?`<span class="err">${left.length} parça mevcut stoklara yerleşemedi.</span>`:`<span class="ok">Tüm parçalar yerleştirildi.</span>`;
+ if(left.length){let d=document.createElement('p');d.className='err';d.textContent='Yerleşemeyenler: '+left.map(x=>x.pos+' ('+x.w+'×'+x.h+')').join(', ');box.appendChild(d)}
+}
+function renderStockReport(sheets,allStocks){
+ let host=$('#stockReport'); if(!host)return;
+ let groups={};
+ allStocks.forEach(s=>{
+   let key=s.stockCode||'STK';
+   if(!groups[key])groups[key]={code:key,mat:s.mat,t:s.t,w:s.w,h:s.h,available:0,used:0,usedArea:0,sheetArea:s.w*s.h};
+   groups[key].available++;
+ });
+ sheets.forEach(sh=>{
+   let key=sh.s.stockCode||'STK';
+   if(!groups[key])groups[key]={code:key,mat:sh.s.mat,t:sh.s.t,w:sh.s.w,h:sh.s.h,available:0,used:0,usedArea:0,sheetArea:sh.s.w*sh.s.h};
+   groups[key].used++;
+   groups[key].usedArea+=sh.items.reduce((z,p)=>z+p.area,0);
+ });
+ let rows=Object.values(groups).map(g=>{
+   let usedSheetArea=g.used*g.sheetArea;
+   let util=usedSheetArea?100*g.usedArea/usedSheetArea:0;
+   return `<tr><td><b>${g.code}</b></td><td>${escapeHTML(g.mat)}</td><td>${g.t} mm</td><td>${g.w} × ${g.h}</td><td>${g.available}</td><td><b>${g.used}</b></td><td>${Math.max(0,g.available-g.used)}</td><td>${g.used?util.toFixed(1)+'%':'—'}</td><td>${g.used?(100-util).toFixed(1)+'%':'—'}</td></tr>`;
+ }).join('');
+ let totalAvail=Object.values(groups).reduce((z,g)=>z+g.available,0);
+ let totalUsed=Object.values(groups).reduce((z,g)=>z+g.used,0);
+ host.innerHTML=`<div class="report-wrap"><h3 class="report-title">Stok Kullanım Raporu</h3><div style="overflow-x:auto"><table><thead><tr><th>Stok</th><th>Malzeme</th><th>Kalınlık</th><th>Plaka Ölçüsü (mm)</th><th>Mevcut</th><th>Kullanılan</th><th>Kalan</th><th>Kullanım</th><th>Fire</th></tr></thead><tbody>${rows}</tbody></table></div><div class="report-total">Toplam stok: <b>${totalAvail}</b> plaka • Kullanılan: <b>${totalUsed}</b> • Kalan: <b>${Math.max(0,totalAvail-totalUsed)}</b></div></div>`;
+}
+
+function draw(c,sh){
+ let ctx=c.getContext('2d'),sx=c.width/sh.s.w,sy=c.height/sh.s.h,s=Math.min(sx,sy);ctx.clearRect(0,0,c.width,c.height);ctx.strokeStyle='#111827';ctx.lineWidth=2;ctx.strokeRect(1,1,sh.s.w*s-2,sh.s.h*s-2);
+ sh.items.forEach((p,i)=>{let x=p.x*s,y=p.y*s,w=p.w*s,h=p.h*s;ctx.beginPath();
+   if(p.geom&&p.geom.kind==='poly'){
+     let pp=normalizedPoly(p,p.rot);pp.forEach((q,k)=>{let xx=(p.x+q[0])*s,yy=(p.y+q[1])*s;k?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy)});ctx.closePath();
+   }
+   else if(p.shape==='circle'){ctx.arc(x+w/2,y+h/2,Math.min(w,h)/2,0,Math.PI*2)}
+   else if(p.shape==='tri'){ctx.moveTo(x+w/2,y);ctx.lineTo(x+w,y+h);ctx.lineTo(x,y+h);ctx.closePath()}
+   else if(p.shape==='trap'){ctx.moveTo(x+w*.2,y);ctx.lineTo(x+w*.8,y);ctx.lineTo(x+w,y+h);ctx.lineTo(x,y+h);ctx.closePath()}
+   else{ctx.rect(x,y,w,h)}
+   if(p.geom?.holes?.length){for(let hole of p.geom.holes){let pts=hole.map(q=>[q[0]-p.geom.minx,q[1]-p.geom.miny]);if(p.rot)pts=pts.map(q=>[q[1],p.geom.w-q[0]]);pts.forEach((q,k)=>{let xx=(p.x+q[0])*s,yy=(p.y+q[1])*s;k?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy)});ctx.closePath();}}
+   ctx.fillStyle=`hsl(${(i*47)%360} 55% 88%)`;ctx.fill('evenodd');ctx.strokeStyle='#334155';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle='#111827';ctx.font=Math.max(10,Math.min(18,w/5))+'px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.pos,x+w/2,y+h/2);
+ })
+}
+addStock();addPart();
+</script>
+<script src="desktop.js"></script></body></html>

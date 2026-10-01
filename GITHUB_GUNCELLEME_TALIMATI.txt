@@ -1,0 +1,17 @@
+MON MÜHENDİSLİK V4.1 — GITHUB / OFFLINE
+
+Bu klasör GitHub Pages kök dizinine yüklenmeye hazırdır.
+
+Önemli:
+- Masaüstü V4 program dosyaları korunmuştur.
+- Web/Safari sürümünde desktop.js artık Mac ve iPhone/iPad çıktı düğmelerini silmez.
+- Profil Kesim Optimizasyonu içindeki:
+  Windows 11 — Yazdır / PDF
+  Mac — Yazdır / PDF
+  iPhone / iPad — Görsel Oluştur
+  seçenekleri korunmuştur.
+- GitHub Pages ilk kez internetle açıldıktan sonra service worker dosyaları önbelleğe alır.
+  Sonraki kullanımlarda offline açılabilir.
+- Yeni service worker'ın devreye girmesi için güncellemeden sonra sayfayı bir kez internet bağlıyken açın.
+
+GitHub'da mevcut dosyaların üzerine bu klasörün içeriğini yükleyin.

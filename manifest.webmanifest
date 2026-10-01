@@ -1,10 +1,10 @@
 {
-  "name": "Mühendislik Programları V3",
-  "short_name": "Mühendislik",
+  "name": "MON Mühendislik Programları",
+  "short_name": "MON Mühendislik",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f3f5f7",
+  "background_color": "#101820",
   "theme_color": "#173b5b",
-  "icons": []
+  "description": "MON Mühendislik çevrimdışı mühendislik programları"
 }
