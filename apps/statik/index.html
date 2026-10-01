@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Çelik Hangar — Portal / Makas Eleman Seçimli V7</title>
+<title>Çelik Hangar — Portal / Makas Eleman Seçimli V8</title>
 <style>
 :root{--b:#173b5b;--g:#1f7a43;--r:#a12d24;--l:#d9e1e7}
 *{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;background:#f4f7f9;color:#17232d}
@@ -17,7 +17,7 @@ table{width:100%;border-collapse:collapse;margin-top:12px}th,td{padding:9px;bord
 </style>
 </head>
 <body><div class="wrap">
-<div class="card"><h1>Çelik Hangar — Portal / Makas Eleman Seçimli V7</h1>
+<div class="card"><h1>Çelik Hangar — Portal / Makas Eleman Seçimli V8</h1>
 <div class="note">Basit ön boyutlandırma: ölçü ve yükleri gir → HESAPLA → kolon ve çatı kirişi otomatik seçilsin.</div></div>
 
 <div class="card"><h2>1. Geometri ve Yükler</h2><div class="grid">
@@ -269,7 +269,7 @@ function design(){
    tbody+=`<tr><td>${it[0]}</td><td><b>${it[1]}</b></td><td>${it[2].toFixed(1)} ${it[0].includes("Ara kat")?"m²":it[0].includes("konsol")?"adet":"m"}</td><td>${it[3].toFixed(2)}</td><td><b>${ton.toFixed(3)} t</b></td><td>${it[4]}</td></tr>`;
  });
  document.getElementById("matBody").innerHTML=tbody;
- document.getElementById("totalTon").innerHTML=`TOPLAM ÇELİK TONAJI: ${total.toFixed(3)} ton`;
+ document.getElementById("totalTon").innerHTML=`PROFİL / TAŞIYICI ÇELİK TONAJI: ${total.toFixed(3)} ton`;
  document.getElementById("tonExplain").innerHTML=`Portal sayısı: <b>${frames}</b> · Aks adedi: <b>${bays}</b> · Hangar uzunluğu: <b>${Len.toFixed(1)} m</b>. Profil tonajı; ana taşıyıcılar + ikincil elemanlar`+(document.getElementById("mezzOn").value==="1"?" + ara kat":"")+(document.getElementById("craneOn").value==="1"?" + vinç yolu/konsollar":"")+` toplamıdır.`;
 
  // Yaklaşık bağlantı plakası tonajı — profil tonajından ayrı gösterilir.
@@ -288,6 +288,10 @@ function design(){
  if(pMezz) plates.push(["Ara kat bağlantı plakaları",pMezz,"Ara kat kiriş/kolon bağlantıları için yaklaşık pay"]);
  if(pCrane) plates.push(["Vinç bağlantı/takviye plakaları",pCrane,"Konsol ve vinç yolu bağlantıları için yaklaşık pay"]);
  document.getElementById("plateBody").innerHTML=plates.map(x=>`<tr><td>${x[0]}</td><td><b>${x[1].toFixed(3)} t</b></td><td>${x[2]}</td></tr>`).join("");
+ // Plakaları ana malzeme listesinde de görünür yap. Profil tonajına ikinci kez ekleme yok;
+ // genel çelik toplamı profil + bağlantı plakası olarak ayrıca gösterilir.
+ document.getElementById("matBody").innerHTML += plates.map(x=>`<tr><td>${x[0]}</td><td><b>Plaka</b></td><td>—</td><td>—</td><td><b>${x[1].toFixed(3)} t</b></td><td>${x[2]}</td></tr>`).join("");
+ document.getElementById("totalTon").innerHTML=`PROFİL / TAŞIYICI ÇELİK: ${total.toFixed(3)} ton · BAĞLANTI PLAKALARI: ${pTot.toFixed(3)} ton · <b>GENEL ÇELİK TOPLAMI: ${(total+pTot).toFixed(3)} ton</b>`;
  document.getElementById("plateTotal").innerHTML=`YAKLAŞIK BAĞLANTI PLAKASI: ${pTot.toFixed(3)} ton · PROFİL + PLAKA: ${(total+pTot).toFixed(3)} ton`;
 
  // Kaplama
@@ -300,6 +304,8 @@ function design(){
  ];
  let netClad=roofArea+sideArea+gableArea, grossClad=netClad*waste;
  document.getElementById("cladBody").innerHTML=clad.map(x=>`<tr><td>${x[0]}</td><td>${x[1].toFixed(1)} m²</td><td><b>${x[2].toFixed(1)} m²</b></td><td>${x[3]}</td></tr>`).join("");
+ // Kaplamaları da ana malzeme listesine m² bazında ekle; tonaja dahil edilmez.
+ document.getElementById("matBody").innerHTML += clad.map(x=>`<tr><td>${x[0]} kaplama</td><td><b>${x[3]}</b></td><td>${x[2].toFixed(1)} m²</td><td>—</td><td>—</td><td>Net ${x[1].toFixed(1)} m² · fireli metraj</td></tr>`).join("");
  document.getElementById("cladTotal").innerHTML=`TOPLAM KAPLAMA: ${grossClad.toFixed(1)} m² (net ${netClad.toFixed(1)} m² + %${n("cladWaste").toFixed(0)} fire)`;
 
  // Basit ölçekli perspektif SVG

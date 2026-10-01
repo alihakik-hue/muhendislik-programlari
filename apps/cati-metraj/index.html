@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kutu Profil Çatı Metraj V10.6</title>
+<title>Kutu Profil Çatı Metraj V10.7</title>
 <style>
 :root{--bg:#0d1420;--panel:#172231;--line:#30445c;--txt:#edf4fb;--muted:#9eb1c5;--acc:#57b7ff}
 *{box-sizing:border-box} body{margin:0;font:14px Arial,sans-serif;background:var(--bg);color:var(--txt)}
@@ -37,7 +37,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;borde
 </style>
 </head>
 <body>
-<header><h1>Kutu Profil Çatı Metraj V10.6</h1><small>Ayaklı / ayaksız • makaslı / tek profil • tek eğim / çift eğim / kırma-4 aklam</small></header>
+<header><h1>Kutu Profil Çatı Metraj V10.7</h1><small>Ayaklı / ayaksız • makaslı / tek profil • tek eğim / çift eğim / kırma-4 aklam</small></header>
 <div class="printbar"><button class="printbtn" id="printPdf" type="button">PDF Yazdır / Kaydet</button></div>
 <main>
 <section class="panel">
@@ -83,7 +83,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;borde
 <div><label>Kaplama uygulama (TL/m²)</label><input id="coverInstallPrice" type="number" value="0" min="0" step="1"></div>
 
 </div>
-<div class="note">Bu V10.6 geometrik metraj ve kullanıcı birim fiyatlarına göre yaklaşık maliyet içindir; statik yeterlilik veya kesin teklif değildir.</div>
+<div class="note">Bu V10.7 geometrik metraj ve kullanıcı birim fiyatlarına göre yaklaşık maliyet içindir; statik yeterlilik veya kesin teklif değildir.</div>
 </section>
 <section>
 <div class="panel">
@@ -100,8 +100,10 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;borde
 <div class="stat"><small>Kaplama</small><b id="coverCostOut">-</b></div>
 <div class="stat"><small>Yaklaşık toplam maliyet</small><b id="grandCostOut">-</b></div>
 </div>
-<div class="rowtitle">Çelik Profil Malzeme Listesi</div>
-<div style="overflow:auto"><table><thead><tr><th>Eleman / Profil</th><th>Metraj</th><th>kg/m</th><th>Kg</th><th>6 m Boy</th></tr></thead><tbody id="tbody"></tbody></table></div>
+<div class="rowtitle">Malzeme Listesi</div>
+<div style="overflow:auto"><table><thead><tr><th>Malzeme / Eleman</th><th>Profil / Tip</th><th>Miktar</th><th>Birim</th><th>Ağırlık</th><th>Maliyet</th></tr></thead><tbody id="tbody"></tbody></table></div>
+<div class="rowtitle">Profil Stok Özeti — 6 m Boy</div>
+<div style="overflow:auto"><table><thead><tr><th>Profil</th><th>Toplam Metraj</th><th>kg/m</th><th>Toplam Kg</th><th>Gerekli 6 m Boy</th></tr></thead><tbody id="stockBody"></tbody></table></div>
 </div>
 </section>
 </main>
@@ -221,10 +223,22 @@ function calculate(){
      if(ridge>0) add(rows,"Mahya taşıyıcı profili",beamProf.value,ridge);
    }
  }
- let totalM=0,totalKg=0,totalStock=0;
+ let totalM=0,totalKg=0;
  tbody.innerHTML="";
- rows.forEach(r=>{let kgpm=(profiles[r.prof]??angles[r.prof]??0),kg=r.m*kgpm,stock=Math.ceil(r.m/6);totalM+=r.m;totalKg+=kg;totalStock+=stock;
- tbody.innerHTML+=`<tr><td>${r.name}<br><small>${r.prof}</small></td><td>${r.m.toFixed(1)} m</td><td>${kgpm.toFixed(2)}</td><td>${kg.toFixed(0)}</td><td>${stock}</td></tr>`});
+ const profTotals={};
+ rows.forEach(r=>{
+   const kgpm=(profiles[r.prof]??angles[r.prof]??0),kg=r.m*kgpm;
+   totalM+=r.m;totalKg+=kg;
+   if(!profTotals[r.prof]) profTotals[r.prof]={m:0,kgpm:kgpm};
+   profTotals[r.prof].m+=r.m;
+   tbody.innerHTML+=`<tr><td>${r.name}</td><td>${r.prof}</td><td>${r.m.toFixed(1)}</td><td>m</td><td>${kg.toFixed(0)} kg</td><td>—</td></tr>`;
+ });
+ let totalStock=0;
+ const stockBody=document.getElementById('stockBody');stockBody.innerHTML='';
+ Object.entries(profTotals).forEach(([prof,x])=>{
+   const qty=Math.ceil(x.m/6),kg=x.m*x.kgpm;totalStock+=qty;
+   stockBody.innerHTML+=`<tr><td>${prof}</td><td>${x.m.toFixed(1)} m</td><td>${x.kgpm.toFixed(2)}</td><td>${kg.toFixed(0)} kg</td><td><b>${qty}</b></td></tr>`;
+ });
  area.textContent=d.area.toFixed(1)+" m²";meters.textContent=totalM.toFixed(1)+" m";weight.textContent=(totalKg/1000).toFixed(2)+" ton";stocks.textContent=totalStock+" boy";
  let coverArea=coverOn.value==="yes"?d.area:0;
  // Oluk: tek eğimde düşük kenar boyunca 1x boy; çift eğimde iki saçak 2x boy; kırma çatıda dört çevre kenarı.
@@ -243,6 +257,9 @@ function calculate(){
  const coverApplicationCost=coverOn.value==="yes"?coverArea*val("coverInstallPrice"):0;
  const coverTotalCost=coverMaterialCost+coverApplicationCost;
  const gutterCost=gutterOn.value==="yes"?gutterM*val("gutterPrice"):0;
+ // Kaplama ve oluk da artık ana malzeme listesinde görünür.
+ if(coverOn.value==="yes") tbody.innerHTML+=`<tr><td>Çatı kaplama</td><td>${coverType.value}</td><td>${coverArea.toFixed(1)}</td><td>m²</td><td>—</td><td>${coverMaterialCost.toLocaleString("tr-TR",{maximumFractionDigits:0})} TL</td></tr>`;
+ if(gutterOn.value==="yes") tbody.innerHTML+=`<tr><td>Kenar oluğu</td><td>${gutterType.value}</td><td>${gutterM.toFixed(1)}</td><td>m</td><td>—</td><td>${gutterCost.toLocaleString("tr-TR",{maximumFractionDigits:0})} TL</td></tr>`;
  const grandCost=steelFabCost+steelMountCost+coverTotalCost+gutterCost;
  const tl=n=>n.toLocaleString("tr-TR",{maximumFractionDigits:0})+" TL";
  steelFabOut.textContent=tl(steelFabCost);

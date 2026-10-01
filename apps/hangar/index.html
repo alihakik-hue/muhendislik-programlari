@@ -45,7 +45,7 @@ main{max-width:none;margin:0}.kpis{grid-template-columns:repeat(4,1fr)}
 </style></head>
 <body>
 <header>
-<h1>Çelik Hangar — Yaklaşık Maliyet & Teklif V11</h1>
+<h1>Çelik Hangar — Yaklaşık Maliyet & Teklif V12</h1>
 <p>Parametrik geometri, profil seçimi, tonaj, kaplama, maliyet analizi ve yazdırılabilir teklif görünümü</p>
 </header>
 <main>
@@ -372,12 +372,29 @@ if(braceM>0) materialRows.push(["Çatı çaprazları",$("brace").value,braceM,br
 tons=tons.filter(x=>x[1]>0.000001);
 
 let baseSteel=tons.reduce((a,x)=>a+x[1],0), plates=baseSteel*.08,totalSteel=baseSteel+plates;
+// Yaklaşık bağlantı plaka tonajını görünür alt kalemlere ayır.
+// Toplam plaka tonajı değişmez; sadece malzeme listesi ve tonaj dağılımında izlenebilir hale gelir.
+function plateBreakdown(total){
+  let defs=[
+    ["Kolon taban / ankraj plakaları",0.25],
+    ["Kolon-kiriş bağlantı plakaları",0.30],
+    ["Haunch / takviye plakaları",0.20]
+  ];
+  if(roof==="Çift eğimli") defs.push(["Mahya / orta bağlantı plakaları",0.10]);
+  if(trussType==="Makas") defs.push(["Makas birleşim / gusset plakaları",0.10]);
+  let used=defs.reduce((s,x)=>s+x[1],0);
+  defs.push(["Diğer bağlantı / detay plakaları",Math.max(0,1-used)]);
+  let sum=defs.reduce((s,x)=>s+x[1],0)||1;
+  return defs.filter(x=>x[1]>0).map(x=>[x[0],total*x[1]/sum]);
+}
+let plateItems=plateBreakdown(plates);
 let floorArea=Math.max(.0001,L*W);
 let kgM2Mode=$("steelKgM2Mode").value;
 let targetKgM2=Math.max(0,+$("targetSteelKgM2").value||0);
 if(kgM2Mode==="target" && targetKgM2>0){
   totalSteel=floorArea*targetKgM2/1000;
   baseSteel=totalSteel/1.08; plates=totalSteel-baseSteel;
+  plateItems=plateBreakdown(plates);
   let raw=Math.max(.0001,tons.reduce((a,x)=>a+x[1],0)),scale=baseSteel/raw;
   tons=tons.map(x=>[x[0],x[1]*scale]);
   materialRows=materialRows.map(function(r){return [r[0],r[1],r[2]*scale,r[3]*scale];});
@@ -386,7 +403,7 @@ if(kgM2Mode==="target" && targetKgM2>0){
 let currency=$("pricingCurrency").value, rate=Math.max(.01,+$("usdTryRate").value||1);
 let steelPrice=+$("steelPrice").value,roofPrice=+$("roofPrice").value,wallPrice=+$("wallPrice").value,anchorPrice=+$("anchorPrice").value,platePrice=+$("platePrice").value;
 let anchors=frames*4,anchorCost=anchors*anchorPrice;
-let steelCost=totalSteel*steelPrice,plateCost=plates*1000*platePrice;
+let steelCost=baseSteel*steelPrice,plateCost=plates*1000*platePrice;
 let roofCost=coverRoof*roofPrice,sideCost=coverSide*wallPrice,gableCost=coverGable*wallPrice;
 let direct=steelCost+plateCost+anchorCost+roofCost+sideCost+gableCost;
 let waste=steelCost*(+$("wastePct").value/100),labor=steelCost*(+$("laborPct").value/100),paint=steelCost*(+$("paintPct").value/100),other=(direct+waste+labor+paint)*(+$("otherPct").value/100);
@@ -405,10 +422,10 @@ $("kSteelKgM2Sub").textContent=kgM2Mode==="target"?"kg/m² (hedef)":"kg/m² (hes
 $("kMainSteelCost").textContent=money(steelCost,currency);
 if($("sumCurrency")) $("sumCurrency").textContent=currency==="TRY"?"TL":"USD";
 
-$("steelBody").innerHTML=tons.map(x=>`<tr><td>${x[0]}</td><td>${fmt(x[1])}</td><td>${fmt(x[1]/totalSteel*100)}%</td></tr>`).join("")+`<tr><th>Plaka/detay</th><th>${fmt(plates)}</th><th>${fmt(plates/totalSteel*100)}%</th></tr><tr><th>TOPLAM</th><th>${fmt(totalSteel)}</th><th>100%</th></tr>`;
+$("steelBody").innerHTML=tons.map(x=>`<tr><td>${x[0]}</td><td>${fmt(x[1])}</td><td>${fmt(x[1]/totalSteel*100)}%</td></tr>`).join("")+plateItems.map(x=>`<tr><td>${x[0]}</td><td>${fmt(x[1])}</td><td>${fmt(x[1]/totalSteel*100)}%</td></tr>`).join("")+`<tr><th>TOPLAM PLAKA / DETAY</th><th>${fmt(plates)}</th><th>${fmt(plates/totalSteel*100)}%</th></tr><tr><th>TOPLAM</th><th>${fmt(totalSteel)}</th><th>100%</th></tr>`;
 
 let costs=[
-["Ana taşıyıcı ve profil çeliği",totalSteel,"ton",steelPrice,steelCost],
+["Ana taşıyıcı ve profil çeliği",baseSteel,"ton",steelPrice,steelCost],
 ["Bağlantı plakaları / detay",plates*1000,"kg",platePrice,plateCost],
 ["Ankraj",anchors,"adet",anchorPrice,anchorCost],
 ["Çatı kaplama",coverRoof,"m²",roofPrice,roofCost]
@@ -421,7 +438,11 @@ let materialCostRows=materialRows.map(function(r){
   let sr=stockRequirement(r[1],r[2]);
   return `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${fmt(r[2])} m</td><td><b>${sr.count} boy</b><br><small>${sr.stock} m stok × ${sr.count} = ${fmt(sr.total)} m</small></td><td>${fmt(r[3])} ton</td><td>${money(steelPrice,currency)}/ton</td><td>${money(cost,currency)}</td></tr>`;
 });
-materialCostRows.push(`<tr><td>Bağlantı plakaları / detay</td><td>Çelik plaka</td><td>-</td><td>-</td><td>${fmt(plates*1000)} kg</td><td>${money(platePrice,currency)}/kg</td><td>${money(plateCost,currency)}</td></tr>`);
+plateItems.forEach(function(pi){
+  let pc=pi[1]*1000*platePrice;
+  materialCostRows.push(`<tr><td>${pi[0]}</td><td>Çelik plaka</td><td>-</td><td>-</td><td>${fmt(pi[1]*1000)} kg</td><td>${money(platePrice,currency)}/kg</td><td>${money(pc,currency)}</td></tr>`);
+});
+materialCostRows.push(`<tr><td><b>Toplam bağlantı plakaları / detay</b></td><td>Çelik plaka</td><td>-</td><td>-</td><td><b>${fmt(plates*1000)} kg</b></td><td>${money(platePrice,currency)}/kg</td><td><b>${money(plateCost,currency)}</b></td></tr>`);
 materialCostRows.push(`<tr><td>Ankrajlar</td><td>Ankraj</td><td>-</td><td>-</td><td>${anchors} adet</td><td>${money(anchorPrice,currency)}/adet</td><td>${money(anchorCost,currency)}</td></tr>`);
 materialCostRows.push(`<tr><td>Çatı kaplama</td><td>Kaplama</td><td>${fmt(coverRoof)} m²</td><td>-</td><td>-</td><td>${money(roofPrice,currency)}/m²</td><td>${money(roofCost,currency)}</td></tr>`);
 if(useSideCladding) materialCostRows.push(`<tr><td>Yan kaplama</td><td>Kaplama</td><td>${fmt(coverSide)} m²</td><td>-</td><td>-</td><td>${money(wallPrice,currency)}/m²</td><td>${money(sideCost,currency)}</td></tr>`);

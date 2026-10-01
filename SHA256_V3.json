@@ -1,11 +1,38 @@
-{
-  "KURULUM_V3.txt": "99b7f8970f06995904a9080a55606eb5e47c0acb58f8c323820ee032248c8682",
-  "apps/cati-metraj/index.html": "a0cf42b80758f53eff0e8020338a7d32a52b6e220b3068f80d0bd147fcc1ab60",
-  "apps/hangar/index.html": "f4149b7ff0164946d83a40f2db3830c5147d77049e50692adb9ed5400c18c003",
-  "apps/plaka-nesting/index.html": "69687bb2df9842976d24b48c9eecd868df9921dc0944198179e6b39efbc6f5c7",
-  "apps/profil-kesim/index.html": "2d6558f6286db5f00273232d30a3e8a46156144ba382ebc567fa0cfc1d2cfc2c",
-  "apps/statik/index.html": "9ea8791756b51cc4f21277b66fe23a0c2205cb3a541bd52b862cd748efef4e10",
-  "index.html": "738822a4c9d76b119991b06e7c593f969e330accf01d4bee1e7a4b6a9bf1e0e2",
-  "manifest.webmanifest": "ec317fe9c71edd27c817e3eec97ed24bfccaadc215dfbb2cc4da78c410932ea6",
-  "sw.js": "92bebc479c6731fd07d1e9ce44697d2633c4f90480fbaf07dec189f2b17f0785"
-}
+[
+  {
+    "file": "KURULUM_V3.txt",
+    "sha256": "99b7f8970f06995904a9080a55606eb5e47c0acb58f8c323820ee032248c8682"
+  },
+  {
+    "file": "apps/cati-metraj/index.html",
+    "sha256": "da1b1f00d701f1a2d981d267614ec7212c89ab2401942b41d046b9c79bcf7331"
+  },
+  {
+    "file": "apps/hangar/index.html",
+    "sha256": "7deeb640e13004ba818d9812b169e73f09abdc3781ae1444c07cb553b727fcc8"
+  },
+  {
+    "file": "apps/plaka-nesting/index.html",
+    "sha256": "3da99a767b035e2c229252fccaae7a74795f49a98d8d35dd1fe08d5c08a0e22d"
+  },
+  {
+    "file": "apps/profil-kesim/index.html",
+    "sha256": "2d6558f6286db5f00273232d30a3e8a46156144ba382ebc567fa0cfc1d2cfc2c"
+  },
+  {
+    "file": "apps/statik/index.html",
+    "sha256": "aa6da4ff96ea604189a11f67146910b1a11286c13204f6d20c27fae0b7862e6e"
+  },
+  {
+    "file": "index.html",
+    "sha256": "47fedff1b708787d49c6f082a21992d087b0ed9a3451a4c5d66e67cd424df005"
+  },
+  {
+    "file": "manifest.webmanifest",
+    "sha256": "ec317fe9c71edd27c817e3eec97ed24bfccaadc215dfbb2cc4da78c410932ea6"
+  },
+  {
+    "file": "sw.js",
+    "sha256": "345cb4a02276d3377123ed9ee9c0ed84936750e913bb48052be007fb39cbbde5"
+  }
+]
