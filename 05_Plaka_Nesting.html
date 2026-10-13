@@ -22,8 +22,9 @@ canvas{width:100%;height:auto;border:1px solid #9aa4b2;background:white;border-r
 @media(max-width:900px){.grid{grid-template-columns:1fr}.settings{grid-template-columns:1fr 1fr}.summary{grid-template-columns:1fr 1fr}}
 @media print{header,.input-area,.toolbar,.note{display:none!important}body{background:white}.card{box-shadow:none;border:0}.sheet{break-inside:avoid;page-break-inside:avoid}.full{padding:0}}
 </style>
-<link rel="stylesheet" href="desktop.css"><link rel="manifest" href="manifest.webmanifest"></head>
-<body>
+<link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="desktop.css">
+</head>
+<body data-mon-module="plaka">
 <header><h1>Plaka Nesting Optimizasyonu V7</h1><p>Farklı stok plakalar üzerinde parça yerleşimi • Safari / Chrome uyumlu • Tek HTML dosyası</p></header>
 <main><div class="dxfbox">
 <b>DXF Parça İçe Aktarma</b>
@@ -382,4 +383,5 @@ function draw(c,sh){
 }
 addStock();addPart();
 </script>
-<script src="desktop.js"></script></body></html>
+<script src="desktop.js"></script>
+</body></html>

@@ -3,7 +3,7 @@ const id=decodeURIComponent(location.pathname.split('/').pop()||'index.html'),is
 const nativePrint=window.print.bind(window);let processing=false;
 const isDesktop=!!window.monDesktop;
 const bar=document.createElement('nav');bar.className='mon-toolbar';
-bar.innerHTML='<button type="button" id="mon-home">← Ana Menü</button><strong>MON Mühendislik</strong><span class="mon-version">4.1 • Çevrimdışı</span><span class="mon-spacer"></span>'+
+bar.innerHTML='<button type="button" id="mon-home">← Ana Menü</button><strong>MON Mühendislik</strong><span class="mon-version">5.0 • Çevrimdışı</span><span class="mon-spacer"></span>'+
  (isHome?'':'<button type="button" id="mon-pdf">PDF / Yazdır</button>')+
  '<span id="mon-output-status" role="status"></span>';
 document.body.prepend(bar);
@@ -63,6 +63,9 @@ if(isDesktop){
 
 /* GitHub Pages/PWA: ilk çevrimiçi açılıştan sonra dosyaları offline önbelleğe al. */
 if(!isDesktop && 'serviceWorker' in navigator && location.protocol!=='file:'){
- window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+ window.addEventListener('load',async()=>{try{
+ const reg=await navigator.serviceWorker.register('./sw.js');
+ await reg.update();
+}catch(e){}});
 }
 })();

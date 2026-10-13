@@ -1,0 +1,40 @@
+MON MÜHENDİSLİK V5 — GITHUB / MAC / iPHONE / iPAD TAM PAKET
+
+BU PAKETTE 5 PROGRAMIN TAMAMI VARDIR:
+1. Çelik Hangar
+2. Profil Kesim Optimizasyonu — FINAL çalışan sürüm
+3. Endüstriyel Statik
+4. Kutu Profil Çatı — V10.7 düzeltmeleri
+5. Plaka Nesting
+
+ÖNEMLİ:
+Önceki Kutu Profil Çatı güncelleme ZIP'i tek modül içindi.
+GitHub Pages köküne tek başına atılırsa ana menü yapısını bozabiliyordu.
+Bu V5 TAM paket bu sorunu düzeltir.
+
+GITHUB:
+- ZIP'i açın.
+- İçindeki TÜM dosyaları GitHub Pages'ın yayınlandığı kök klasöre yükleyin.
+- Aynı isimli dosyalar için Replace/Overwrite yapın.
+- Eski apps/ klasörü kalabilir; bu paket kökteki index.html üzerinden çalışır.
+- Commit changes yapın.
+
+MAC / iPHONE / iPAD:
+- Güncellemeden sonra siteyi internet açıkken açın.
+- 5-10 saniye bekleyin ve sayfayı bir kez yenileyin.
+- Eski tek ekran görünürse Safari sekmesini kapatıp yeniden açın.
+- iPhone/iPad'de Paylaş > Ana Ekrana Ekle ile PWA gibi kullanabilirsiniz.
+- İlk çevrimiçi açılıştan sonra 5 program offline önbelleğe alınır.
+
+DOSYA YAPISI:
+index.html
+01_Celik_Hangar.html
+02_Profil_Kesim_Optimizasyon.html
+03_Endustriyel_Statik.html
+04_Kutu_Profil_Cati.html
+05_Plaka_Nesting.html
+desktop.css
+desktop.js
+dxf-import.js
+manifest.webmanifest
+sw.js

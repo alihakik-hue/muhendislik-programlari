@@ -34,9 +34,11 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;borde
  table{font-size:8pt;page-break-inside:auto}thead{display:table-header-group}tr{page-break-inside:avoid}th,td{border-bottom:1px solid #aaa;padding:4px;color:#000}
  section{page-break-inside:auto}
 }
+.subtotal td{font-weight:700;background:#eef6fb;border-top:2px solid #9bb5c8}.material-extra td{background:#fff9e8}
 </style>
-<meta name="theme-color" content="#173b5b"><style>.suite-nav{padding:9px 16px;background:#173b5b;color:white;font:14px Arial,sans-serif}.suite-nav a{color:white;text-decoration:none}@media print{.suite-nav{display:none!important}}</style><link rel="stylesheet" href="desktop.css"><link rel="manifest" href="manifest.webmanifest"></head>
-<body>
+<link rel="stylesheet" href="desktop.css">
+</head>
+<body data-mon-module="kutu-cati">
 <header><h1>Kutu Profil Çatı Metraj V10.7</h1><small>Ayaklı / ayaksız • makaslı / tek profil • tek eğim / çift eğim / kırma-4 aklam</small></header>
 <div class="printbar"><button class="printbtn" id="printPdf" type="button">PDF Yazdır / Kaydet</button></div>
 <main>
@@ -83,7 +85,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;borde
 <div><label>Kaplama uygulama (TL/m²)</label><input id="coverInstallPrice" type="number" value="0" min="0" step="1"></div>
 
 </div>
-<div class="note">Bu V10.7 geometrik metraj ve kullanıcı birim fiyatlarına göre yaklaşık maliyet içindir; statik yeterlilik veya kesin teklif değildir.</div>
+<div class="note">Bu V10.7 geometrik metraj ve kullanıcı birim fiyatlarına göre yaklaşık maliyet içindir; aynı profil stokları 6 m bazında birleştirilir. Statik yeterlilik veya kesin teklif değildir.</div>
 </section>
 <section>
 <div class="panel">
@@ -100,67 +102,12 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;borde
 <div class="stat"><small>Kaplama</small><b id="coverCostOut">-</b></div>
 <div class="stat"><small>Yaklaşık toplam maliyet</small><b id="grandCostOut">-</b></div>
 </div>
-<div class="rowtitle">Çelik Profil Malzeme Listesi</div>
-<div style="overflow:auto"><table><thead><tr><th>Eleman / Profil</th><th>Metraj</th><th>kg/m</th><th>Kg</th><th>6 m Boy</th></tr></thead><tbody id="tbody"></tbody></table></div>
+<div class="rowtitle">Malzeme Listesi</div>
+<div style="overflow:auto"><table><thead><tr><th>Eleman / Profil</th><th>Miktar</th><th>kg/m</th><th>Kg</th><th>6 m Boy</th></tr></thead><tbody id="tbody"></tbody></table></div>
 </div>
 </section>
 </main>
 <script>
-const printPdf=document.getElementById("printPdf"),
-  roof=document.getElementById("roof"),
-  legs=document.getElementById("legs"),
-  system=document.getElementById("system"),
-  slopeMode=document.getElementById("slopeMode"),
-  slopeWrap=document.getElementById("slopeWrap"),
-  slope=document.getElementById("slope"),
-  riseWrap=document.getElementById("riseWrap"),
-  riseInput=document.getElementById("riseInput"),
-  W=document.getElementById("W"),
-  L=document.getElementById("L"),
-  legHeightWrap=document.getElementById("legHeightWrap"),
-  H=document.getElementById("H"),
-  bay=document.getElementById("bay"),
-  legProfWrap=document.getElementById("legProfWrap"),
-  legProf=document.getElementById("legProf"),
-  ringProfWrap=document.getElementById("ringProfWrap"),
-  ringProf=document.getElementById("ringProf"),
-  beamProfWrap=document.getElementById("beamProfWrap"),
-  beamProf=document.getElementById("beamProf"),
-  chordProfWrap=document.getElementById("chordProfWrap"),
-  chordProf=document.getElementById("chordProf"),
-  webProfWrap=document.getElementById("webProfWrap"),
-  webProf=document.getElementById("webProf"),
-  diagProfWrap=document.getElementById("diagProfWrap"),
-  diagProf=document.getElementById("diagProf"),
-  purlinProf=document.getElementById("purlinProf"),
-  purlinSpace=document.getElementById("purlinSpace"),
-  braceProf=document.getElementById("braceProf"),
-  hipOptions=document.getElementById("hipOptions"),
-  hipMiddle=document.getElementById("hipMiddle"),
-  hipExtra=document.getElementById("hipExtra"),
-  hipExtraCountWrap=document.getElementById("hipExtraCountWrap"),
-  hipExtraCount=document.getElementById("hipExtraCount"),
-  coverOn=document.getElementById("coverOn"),
-  coverType=document.getElementById("coverType"),
-  coverPrice=document.getElementById("coverPrice"),
-  gutterOn=document.getElementById("gutterOn"),
-  gutterType=document.getElementById("gutterType"),
-  gutterPrice=document.getElementById("gutterPrice"),
-  steelFabPrice=document.getElementById("steelFabPrice"),
-  steelMountPrice=document.getElementById("steelMountPrice"),
-  coverInstallPrice=document.getElementById("coverInstallPrice"),
-  cv=document.getElementById("cv"),
-  area=document.getElementById("area"),
-  meters=document.getElementById("meters"),
-  weight=document.getElementById("weight"),
-  stocks=document.getElementById("stocks"),
-  coverOut=document.getElementById("coverOut"),
-  gutterOut=document.getElementById("gutterOut"),
-  steelFabOut=document.getElementById("steelFabOut"),
-  steelMountOut=document.getElementById("steelMountOut"),
-  coverCostOut=document.getElementById("coverCostOut"),
-  grandCostOut=document.getElementById("grandCostOut"),
-  tbody=document.getElementById("tbody");
 const profiles={
 "20x20x1.5":0.87,"25x25x1.5":1.10,"30x30x1.5":1.34,"30x30x2":1.76,
 "40x20x1.5":1.34,"40x20x2":1.76,"40x40x1.5":1.81,"40x40x2":2.39,"40x40x3":3.48,"40x60x2":3.02,"40x60x3":4.43,
@@ -276,17 +223,42 @@ function calculate(){
      if(ridge>0) add(rows,"Mahya taşıyıcı profili",beamProf.value,ridge);
    }
  }
- let totalM=0,totalKg=0,totalStock=0;
- tbody.innerHTML="";
- rows.forEach(r=>{let kgpm=(profiles[r.prof]??angles[r.prof]??0),kg=r.m*kgpm,stock=Math.ceil(r.m/6);totalM+=r.m;totalKg+=kg;totalStock+=stock;
- tbody.innerHTML+=`<tr><td>${r.name}<br><small>${r.prof}</small></td><td>${r.m.toFixed(1)} m</td><td>${kgpm.toFixed(2)}</td><td>${kg.toFixed(0)}</td><td>${stock}</td></tr>`});
- area.textContent=d.area.toFixed(1)+" m²";meters.textContent=totalM.toFixed(1)+" m";weight.textContent=(totalKg/1000).toFixed(2)+" ton";stocks.textContent=totalStock+" boy";
+ // Kaplama ve oluk miktarlarını ana malzeme listesi oluşturulmadan önce hesapla.
  let coverArea=coverOn.value==="yes"?d.area:0;
  // Oluk: tek eğimde düşük kenar boyunca 1x boy; çift eğimde iki saçak 2x boy; kırma çatıda dört çevre kenarı.
  let gutterM=0;
  if(gutterOn.value==="yes"){
    gutterM=roof.value==="single"?d.L:(roof.value==="gable"?2*d.L:2*(d.W+d.L));
  }
+
+ // Aynı profilin bütün kullanım yerlerini TEK stok havuzunda topla.
+ // Örnek: aynı profilden 2 m + 2 m + 2 m => toplam 6 m => 1 boy (3 boy değil).
+ const profileTotals=new Map();
+ let totalM=0,totalKg=0;
+ rows.forEach(r=>{
+   const kgpm=(profiles[r.prof]??angles[r.prof]??0),kg=r.m*kgpm;
+   totalM+=r.m; totalKg+=kg;
+   if(!profileTotals.has(r.prof)) profileTotals.set(r.prof,{prof:r.prof,m:0,kg:0,kgpm,names:[]});
+   const g=profileTotals.get(r.prof); g.m+=r.m; g.kg+=kg;
+   if(!g.names.includes(r.name)) g.names.push(r.name);
+ });
+ const groupedProfiles=[...profileTotals.values()].map(g=>({...g,stock:Math.ceil(g.m/6)}));
+ const totalStock=groupedProfiles.reduce((s,g)=>s+g.stock,0);
+
+ tbody.innerHTML="";
+ // Eleman bazlı metrajı koru; stok adedi profil toplam satırında bir kez gösterilir.
+ rows.forEach(r=>{
+   const kgpm=(profiles[r.prof]??angles[r.prof]??0),kg=r.m*kgpm;
+   tbody.innerHTML+=`<tr><td>${r.name}<br><small>${r.prof}</small></td><td>${r.m.toFixed(1)} m</td><td>${kgpm.toFixed(2)}</td><td>${kg.toFixed(0)}</td><td>—</td></tr>`;
+ });
+ groupedProfiles.forEach(g=>{
+   tbody.innerHTML+=`<tr class="subtotal"><td>PROFİL TOPLAMI<br><small>${g.prof} · ${g.names.join(" + ")}</small></td><td>${g.m.toFixed(1)} m</td><td>${g.kgpm.toFixed(2)}</td><td>${g.kg.toFixed(0)}</td><td>${g.stock}</td></tr>`;
+ });
+ // Kaplama ve oluk da ana malzeme listesinde yer alır.
+ if(coverOn.value==="yes") tbody.innerHTML+=`<tr class="material-extra"><td>Çatı Kaplama<br><small>${coverType.value}</small></td><td>${coverArea.toFixed(1)} m²</td><td>—</td><td>—</td><td>—</td></tr>`;
+ if(gutterOn.value==="yes") tbody.innerHTML+=`<tr class="material-extra"><td>Kenar Oluğu<br><small>${gutterType.value}</small></td><td>${gutterM.toFixed(1)} m</td><td>—</td><td>—</td><td>—</td></tr>`;
+
+ area.textContent=d.area.toFixed(1)+" m²";meters.textContent=totalM.toFixed(1)+" m";weight.textContent=(totalKg/1000).toFixed(2)+" ton";stocks.textContent=totalStock+" boy";
  coverOut.textContent=coverOn.value==="yes"?coverArea.toFixed(1)+" m² • "+coverType.value+(val("coverPrice")>0?" • "+(coverArea*val("coverPrice")).toLocaleString("tr-TR",{maximumFractionDigits:0})+" TL":""):"Yok";
  gutterOut.textContent=gutterOn.value==="yes"?gutterM.toFixed(1)+" m • "+gutterType.value+(val("gutterPrice")>0?" • "+(gutterM*val("gutterPrice")).toLocaleString("tr-TR",{maximumFractionDigits:0})+" TL":""):"Yok";
 
@@ -310,7 +282,7 @@ function draw(d,frames){
  const c=cv,ctx=c.getContext("2d");ctx.clearRect(0,0,c.width,c.height);
  const baseZ=legs.value==="yes"?val("H"):0, scale=Math.min(28,700/Math.max(d.W,d.L)), ox=300,oy=480;
  function P(x,y,z){return [ox+(x-y*.55)*scale,oy-(z+y*.28)*scale]}
- function line(a,b,col="#b7d4e8",w=2){let A=P(...a),B=P(...b);ctx.strokeStyle=window.monPrintMode?"#214764":col;ctx.lineWidth=w;ctx.beginPath();ctx.moveTo(...A);ctx.lineTo(...B);ctx.stroke()}
+ function line(a,b,col="#b7d4e8",w=2){let A=P(...a),B=P(...b);ctx.strokeStyle=col;ctx.lineWidth=w;ctx.beginPath();ctx.moveTo(...A);ctx.lineTo(...B);ctx.stroke()}
  // base/legs/ring
  let ys=Array.from({length:frames},(_,i)=>i*d.L/(frames-1||1));
  if(legs.value==="yes"){
@@ -416,7 +388,7 @@ function draw(d,frames){
    });
    if(d.L>d.W)line([d.W/2,a,baseZ+d.rise],[d.W/2,d.L-a,baseZ+d.rise],"#ffd166",3);
  }
- ctx.fillStyle=window.monPrintMode?"#17232d":"#dcecff";ctx.font="16px Arial";ctx.fillText(`${d.W} m × ${d.L} m • ${roof.options[roof.selectedIndex].text} • ${system.options[system.selectedIndex].text}`,24,32);
+ ctx.fillStyle="#dcecff";ctx.font="16px Arial";ctx.fillText(`${d.W} m × ${d.L} m • ${roof.options[roof.selectedIndex].text} • ${system.options[system.selectedIndex].text}`,24,32);
 }
 function ui(){
  let on=legs.value==="yes",tr=system.value==="truss";
@@ -429,8 +401,7 @@ function ui(){
 }
 document.querySelectorAll("input,select").forEach(e=>e.addEventListener("input",ui));
 document.getElementById("printPdf").addEventListener("click",()=>{ calculate(); setTimeout(()=>window.print(),80); });
-window.addEventListener("beforeprint",()=>{window.monPrintMode=true;ui()});
-window.addEventListener("afterprint",()=>{window.monPrintMode=false;ui()});
 ui();
 </script>
-<script src="desktop.js"></script></body></html>
+<script src="desktop.js"></script>
+</body></html>
